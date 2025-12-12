@@ -136,60 +136,61 @@
     <div id="status" class="status"></div>
   </form>
 
-  <script>
-    // URL del Web App de Apps Script
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiESV-GMfq48Tvts8BK8WOc3_jS4bU9tTlRoBxNpp-s-LN1O1Qf1cpL4y30wT94USCMQ/exec";
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiESV-GMfq48Tvts8BK8WOc3_jS4bU9tTlRoBxNpp-s-LN1O1Qf1cpL4y30wT94USCMQ/exec";
 
-    const form = document.getElementById('ofrendaForm');
-    const statusEl = document.getElementById('status');
+  const form = document.getElementById('ofrendaForm');
+  const statusEl = document.getElementById('status');
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      statusEl.textContent = "Enviando...";
-      statusEl.className = "status";
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    statusEl.textContent = "Enviando...";
+    statusEl.className = "status";
 
-      const montoRaw = document.getElementById('monto').value;
-      const monto = parseInt(montoRaw, 10); // fuerza entero
-      const concepto = document.getElementById('concepto').value;
-      const notas = document.getElementById('notas').value;
+    const montoRaw = document.getElementById('monto').value;
+    const monto = parseInt(montoRaw, 10);
+    const concepto = document.getElementById('concepto').value;
+    const notas = document.getElementById('notas').value;
 
-      if (isNaN(monto)) {
-        statusEl.textContent = "⚠️ El monto debe ser un número entero.";
-        statusEl.className = "status error";
-        return;
-      }
+    if (isNaN(monto)) {
+      statusEl.textContent = "⚠️ El monto debe ser un número entero.";
+      statusEl.className = "status error";
+      return;
+    }
 
-      const payload = {
-        monto,
-        concepto,
-        notas
-        // sin fecha: la pone el servidor con la fecha actual
-      };
+    const formData = new FormData();
+    formData.append('monto', monto);
+    formData.append('concepto', concepto);
+    formData.append('notas', notas);
 
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: formData
+      });
+
+      const text = await res.text();
+      let data;
       try {
-        const res = await fetch(SCRIPT_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
-        });
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        throw new Error("Respuesta no válida del servidor: " + text);
+      }
 
-        const data = await res.json();
-
-        if (data.success) {
-          statusEl.textContent = "✅ Ofrenda registrada correctamente.";
-          statusEl.className = "status ok";
-          form.reset();
-        } else {
-          statusEl.textContent = "⚠️ Error al guardar: " + (data.error || "desconocido");
-          statusEl.className = "status error";
-        }
-      } catch (err) {
-        statusEl.textContent = "❌ Error de conexión: " + err.toString();
+      if (data.success) {
+        statusEl.textContent = "✅ Ofrenda registrada correctamente.";
+        statusEl.className = "status ok";
+        form.reset();
+      } else {
+        statusEl.textContent = "⚠️ Error al guardar: " + (data.error || "desconocido");
         statusEl.className = "status error";
       }
-    });
-  </script>
+    } catch (err) {
+      statusEl.textContent = "❌ Error de conexión: " + err.toString();
+      statusEl.className = "status error";
+    }
+  });
+</script>
 </body>
 </html>
+
