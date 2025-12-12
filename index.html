@@ -2,8 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>4.25 Registro de Ofrendas – Casa de Oración</title>
+  <title>4.40 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Chart.js desde CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -112,15 +116,16 @@
     #graficoContainer {
       margin-top: 1rem;
       width: 100%;
-      min-height: 350px;
+      height: 360px; /* alto fijo cómodo para el gráfico */
       display: none;
-    }
-    #graficoFrame {
-      width: 100%;
-      height: 350px;
-      border: none;
-      border-radius: 12px;
       background: #ffffff;
+      border-radius: 12px;
+      padding: 0.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    #graficoCanvas {
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
@@ -132,7 +137,7 @@
   <h1>Registro de Ofrendas</h1>
 
   <form id="ofrendaForm">
-    <!-- Primero concepto -->
+    <!-- Concepto -->
     <label for="conceptoSelect">Concepto</label>
     <select id="conceptoSelect" name="conceptoSelect" required>
       <option value="" disabled selected>Seleccioná un concepto</option>
@@ -140,7 +145,7 @@
       <option value="Culto de Oración">Culto de Oración</option>
       <option value="Otro">Otro</option>
     </select>
-    
+
     <div id="conceptoOtroContainer" style="display:none; margin-top:0.5rem;">
       <label for="conceptoOtro">Especificar concepto</label>
       <input
@@ -150,8 +155,8 @@
         placeholder="Ej: Actividad especial, misioneros..."
       />
     </div>
-    
-    <!-- Luego monto -->
+
+    <!-- Monto -->
     <label for="monto">Monto (₡)</label>
     <input
       type="number"
@@ -163,8 +168,8 @@
       inputmode="numeric"
       pattern="[0-9]*"
     />
-    
-    <!-- Luego asistencia -->
+
+    <!-- Asistencia -->
     <label for="asistencia">Asistencia</label>
     <input
       type="number"
@@ -176,21 +181,20 @@
       pattern="[0-9]*"
       placeholder="Cantidad de personas"
     />
-    
-    <!-- Luego notas -->
+
+    <!-- Notas -->
     <label for="notas">Notas</label>
     <textarea
       id="notas"
       name="notas"
       placeholder="Detalles adicionales (opcional)"
     ></textarea>
-    
+
     <button type="submit" class="btn-guardar">Guardar</button>
     <div id="status" class="status"></div>
-
   </form>
 
-  <!-- Botones para ver gráficos -->
+  <!-- Botones para ver gráficos (CO / CP) -->
   <div class="graphs-container">
     <button id="verCOBtn" class="btn-datos" disabled>
       Ver gráfico CO (Culto de Oración)
@@ -200,37 +204,30 @@
     </button>
   </div>
 
-  <!-- Contenedor donde se muestra el gráfico embebido -->
+  <!-- Contenedor del gráfico en HTML -->
   <div id="graficoContainer">
-    <iframe
-      id="graficoFrame"
-      allowfullscreen
-    ></iframe>
+    <canvas id="graficoCanvas"></canvas>
   </div>
 
   <script>
     const SCRIPT_URL =
       "https://script.google.com/macros/s/AKfycbwRGdSR7zaTIYpg_R1OZyQotTYOp81MGShlp3D1TWcOQkYzoCjCZ7mmc9lRWC6M1zkUcA/exec";
 
-    // Gráficos publicados
-    const GRAPH_CO_URL =
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ApTb9ak2QTSVcswEo0vF655FuLZkmR75CZ2SpmgI0ZD_OtJaEGloAmytg6vJy-g-KovswTV2laHg/pubchart?oid=151386483&format=interactive";
-
-    const GRAPH_CP_URL =
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ApTb9ak2QTSVcswEo0vF655FuLZkmR75CZ2SpmgI0ZD_OtJaEGloAmytg6vJy-g-KovswTV2laHg/pubchart?oid=151386483&format=interactive";
-
     const form = document.getElementById("ofrendaForm");
     const statusEl = document.getElementById("status");
     const verCOBtn = document.getElementById("verCOBtn");
     const verCPBtn = document.getElementById("verCPBtn");
     const graficoContainer = document.getElementById("graficoContainer");
-    const graficoFrame = document.getElementById("graficoFrame");
+    const graficoCanvas = document.getElementById("graficoCanvas");
 
     const conceptoSelect = document.getElementById("conceptoSelect");
     const conceptoOtroContainer = document.getElementById("conceptoOtroContainer");
     const conceptoOtroInput = document.getElementById("conceptoOtro");
+    const asistenciaInput = document.getElementById("asistencia");
 
-    // Mostrar/ocultar campo "Otro" según selección
+    let graficoChart = null;
+
+    // Mostrar/ocultar campo "Otro"
     conceptoSelect.addEventListener("change", () => {
       if (conceptoSelect.value === "Otro") {
         conceptoOtroContainer.style.display = "block";
@@ -240,6 +237,7 @@
       }
     });
 
+    // Envío del formulario (registrar ofrenda)
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       statusEl.textContent = "Enviando...";
@@ -247,15 +245,14 @@
 
       const montoRaw = document.getElementById("monto").value;
       const monto = parseInt(montoRaw, 10);
-      
+
       const conceptoSelectValue = conceptoSelect.value;
       const conceptoOtroValue = conceptoOtroInput.value.trim();
-      
-      const asistenciaRaw = document.getElementById("asistencia").value;
-      const asistencia = asistenciaRaw ? parseInt(asistenciaRaw, 10) : "";
-      
-      const notas = document.getElementById("notas").value;
 
+      const asistenciaRaw = asistenciaInput.value;
+      const asistencia = asistenciaRaw ? parseInt(asistenciaRaw, 10) : "";
+
+      const notas = document.getElementById("notas").value;
 
       if (isNaN(monto)) {
         statusEl.textContent = "⚠️ El monto debe ser un número entero.";
@@ -280,13 +277,14 @@
       }
 
       const params = new URLSearchParams({
-          monto: String(monto),
-          concepto: conceptoFinal,
-          asistencia: asistencia,   // 👈 nuevo campo
-          notas: notas,
+        monto: String(monto),
+        concepto: conceptoFinal,
+        asistencia: asistencia,
+        notas: notas,
       });
 
       try {
+        // Seguimos usando GET + no-cors para registrar (ya te funciona bien)
         await fetch(`${SCRIPT_URL}?${params.toString()}`, {
           method: "GET",
           mode: "no-cors",
@@ -305,22 +303,82 @@
       }
     });
 
-    function mostrarGrafico(url) {
-      graficoFrame.src = url;
-      graficoContainer.style.display = "block";
+    // Cargar pivot desde Apps Script y dibujar gráfico
+    async function cargarYMostrarGrafico(tipo, titulo) {
+      try {
+        statusEl.textContent = "Cargando gráfico...";
+        statusEl.className = "status";
+
+        const url = `${SCRIPT_URL}?mode=pivot&tipo=${encodeURIComponent(tipo)}`;
+        const res = await fetch(url); // aquí SÍ necesitamos leer la respuesta
+        if (!res.ok) {
+          throw new Error("HTTP " + res.status);
+        }
+
+        const data = await res.json();
+        const headers = data.headers || [];
+        let rows = data.rows || [];
+
+        // Filtramos filas vacías
+        rows = rows.filter(r => r && r[0] !== "" && r[1] !== "" && r[1] != null);
+
+        if (!rows.length) {
+          statusEl.textContent = "⚠️ No hay datos para este gráfico.";
+          statusEl.className = "status error";
+          graficoContainer.style.display = "none";
+          return;
+        }
+
+        // Asumimos: columna 0 = etiqueta (ej. fecha), columna 1 = valor (ej. monto)
+        const labels = rows.map(r => String(r[0]));
+        const values = rows.map(r => Number(r[1]) || 0);
+
+        graficoContainer.style.display = "block";
+
+        // Destruir gráfico previo si existe
+        if (graficoChart) {
+          graficoChart.destroy();
+        }
+
+        graficoChart = new Chart(graficoCanvas.getContext("2d"), {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: titulo || headers[1] || "Valor",
+                data: values,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+
+        statusEl.textContent = "";
+        statusEl.className = "status";
+      } catch (err) {
+        statusEl.textContent = "❌ Error cargando gráfico: " + err.toString();
+        statusEl.className = "status error";
+        graficoContainer.style.display = "none";
+      }
     }
 
+    // Botones de gráficos
     verCOBtn.addEventListener("click", () => {
-      mostrarGrafico(GRAPH_CO_URL);
+      cargarYMostrarGrafico("CO", "Culto de Oración");
     });
 
     verCPBtn.addEventListener("click", () => {
-      mostrarGrafico(GRAPH_CP_URL);
+      cargarYMostrarGrafico("CP", "Culto Principal");
     });
   </script>
 </body>
 </html>
-
-
-
-
