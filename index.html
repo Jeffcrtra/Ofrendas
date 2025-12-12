@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>2.40 Registro de Ofrendas – Casa de Oración</title>
+  <title>2.45 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -136,7 +136,7 @@
     <div id="status" class="status"></div>
   </form>
 
-  <script>
+    <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiESV-GMfq48Tvts8BK8WOc3_jS4bU9tTlRoBxNpp-s-LN1O1Qf1cpL4y30wT94USCMQ/exec";
   
     const form = document.getElementById('ofrendaForm');
@@ -158,21 +158,20 @@
         return;
       }
   
-      const formData = new FormData();
-      formData.append('monto', monto);
-      formData.append('concepto', concepto);
-      formData.append('notas', notas);
+      // Construimos la URL con querystring
+      const params = new URLSearchParams({
+        monto: String(monto),
+        concepto: concepto,
+        notas: notas
+      });
   
       try {
-        await fetch(SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors",   // 🔑 clave para que el navegador no bloquee por CORS
-          body: formData
+        await fetch(`${SCRIPT_URL}?${params.toString()}`, {
+          method: "GET",
+          mode: "no-cors"   // disparamos la petición sin pelear con CORS
         });
   
-        // En modo no-cors no podemos leer respuesta,
-        // pero si no hubo error de red asumimos éxito.
-        statusEl.textContent = "✅ Ofrenda registrada (revisa la hoja para confirmar).";
+        statusEl.textContent = "✅ Ofrenda registrada (ver hoja ingresos).";
         statusEl.className = "status ok";
         form.reset();
   
@@ -182,6 +181,8 @@
       }
     });
   </script>
+
   
 </body>
 </html>
+
