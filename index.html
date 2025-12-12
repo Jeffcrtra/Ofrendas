@@ -2,11 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>5.05 Registro de Ofrendas – Casa de Oración</title>
+  <title>5.20 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Chart.js desde CDN -->
+  <!-- Chart.js y plugin de data labels -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
   <style>
     body {
@@ -77,13 +78,9 @@
       background: #4caf50;
       color: #fff;
     }
-    .btn-datos {
+    .btn-accion {
       background: #1976d2;
       color: #fff;
-    }
-    .btn-datos[disabled] {
-      background: #b0bec5;
-      cursor: not-allowed;
     }
     .status {
       margin-top: 0.8rem;
@@ -112,7 +109,7 @@
       flex-direction: column;
       gap: 0.5rem;
       background: #ffffff;
-      padding: 0.8rem 1rem;
+      padding: 0.8rem 1rem 1rem;
       border-radius: 12px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
@@ -126,14 +123,41 @@
       border-radius: 12px;
       padding: 0.5rem;
       box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      transition: height 0.3s ease;
     }
+    #graficoContainer.expanded-chart {
+      height: 75vh; /* modo grande */
+    }
+
     #graficoCanvas {
       width: 100%;
-      height: 70%;
+      height: 65%;
     }
-    #resumenTexto {
+
+    #customLegend {
+      margin-top: 0.3rem;
+      font-size: 0.85rem;
+    }
+
+    #resumenBox {
       margin-top: 0.5rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      background: #e3f2fd; /* azul clarito */
       font-size: 0.9rem;
+    }
+    #resumenBox a {
+      color: #1565c0;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    #resumenBox a:hover {
+      text-decoration: underline;
+    }
+    #creditLine {
+      margin-top: 0.3rem;
+      font-size: 0.8rem;
+      opacity: 0.9;
     }
   </style>
 </head>
@@ -206,41 +230,55 @@
   <div class="graphs-container">
     <label for="tipoGrafico">Tipo de culto a visualizar</label>
     <select id="tipoGrafico">
+      <option value="" selected>Seleccioná un tipo de culto</option>
       <option value="CO">Culto de Oración (CO)</option>
       <option value="CP">Culto Principal (CP)</option>
     </select>
-    <button id="verGraficoBtn" class="btn-datos" disabled>
-      Ver gráfico
+
+    <button id="toggleSizeBtn" type="button" class="btn-accion">
+      Ampliar gráfico
     </button>
   </div>
 
   <!-- Contenedor del gráfico en HTML -->
   <div id="graficoContainer">
     <canvas id="graficoCanvas"></canvas>
-    <div id="customLegend" style="margin-top:0.5rem; font-size:0.85rem;"></div>
-    <div id="resumenTexto"></div>
+    <div id="customLegend"></div>
+
+    <div id="resumenBox">
+      <div id="resumenTexto"></div>
+      <div id="creditLine">
+        Aplicación creada por
+        <a href="https://www.linkedin.com/in/jeffrey-trigueros-371191123/" target="_blank" rel="noopener noreferrer">
+          Jeffrey Trigueros
+        </a>.
+      </div>
+    </div>
   </div>
 
-    <script>
-      const SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbxGEAdbTqpSQlTBBibm0ulRHyZPj93A83bfeSyWuDG3Hcqmd4IdserjMgIPZjRDvOVW1Q/exec";
-  
-      const form = document.getElementById("ofrendaForm");
+  <script>
+    // Registrar plugin de datalabels en Chart.js
+    Chart.register(ChartDataLabels);
+
+    const SCRIPT_URL =
+      "https://script.google.com/macros/s/AKfycbxGEAdbTqpSQlTBBibm0ulRHyZPj93A83bfeSyWuDG3Hcqmd4IdserjMgIPZjRDvOVW1Q/exec";
+
+    const form = document.getElementById("ofrendaForm");
     const statusEl = document.getElementById("status");
     const conceptoSelect = document.getElementById("conceptoSelect");
     const conceptoOtroContainer = document.getElementById("conceptoOtroContainer");
     const conceptoOtroInput = document.getElementById("conceptoOtro");
     const asistenciaInput = document.getElementById("asistencia");
     const tipoGraficoSelect = document.getElementById("tipoGrafico");
-    const verGraficoBtn = document.getElementById("verGraficoBtn");
-  
+    const toggleSizeBtn = document.getElementById("toggleSizeBtn");
+
     const graficoContainer = document.getElementById("graficoContainer");
     const graficoCanvas = document.getElementById("graficoCanvas");
     const resumenTexto = document.getElementById("resumenTexto");
     const customLegendEl = document.getElementById("customLegend");
-  
+
     let graficoChart = null;
-  
+
     // Config de colores por tipo de culto
     const configPorTipo = {
       CO: {
@@ -254,14 +292,13 @@
         borderColor: "rgba(239, 108, 0, 1)",     // naranja fuerte
       },
     };
-  
-    const asistenciaColor = "rgba(46, 125, 50, 1)"; // verde para la línea
-  
-    // Helper: formatear fecha bonita (viene como "2025-10-07T06:00:00.000Z")
+
+    const asistenciaColor = "rgba(46, 125, 50, 1)"; // verde
+
+    // Helper: formatear fecha para el eje X
     function formatearFechaLabel(raw) {
       const d = new Date(raw);
       if (!isNaN(d.getTime())) {
-        // dd/MM
         return d.toLocaleDateString("es-CR", {
           day: "2-digit",
           month: "2-digit",
@@ -269,7 +306,7 @@
       }
       return String(raw);
     }
-  
+
     // Mostrar/ocultar campo "Otro"
     conceptoSelect.addEventListener("change", () => {
       if (conceptoSelect.value === "Otro") {
@@ -279,36 +316,36 @@
         conceptoOtroInput.value = "";
       }
     });
-  
+
     // Envío del formulario (registrar ofrenda)
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       statusEl.textContent = "Enviando...";
       statusEl.className = "status";
-  
+
       const montoRaw = document.getElementById("monto").value;
       const monto = parseInt(montoRaw, 10);
-  
+
       const conceptoSelectValue = conceptoSelect.value;
       const conceptoOtroValue = conceptoOtroInput.value.trim();
-  
+
       const asistenciaRaw = asistenciaInput.value;
       const asistencia = asistenciaRaw ? parseInt(asistenciaRaw, 10) : "";
-  
+
       const notas = document.getElementById("notas").value;
-  
+
       if (isNaN(monto)) {
         statusEl.textContent = "⚠️ El monto debe ser un número entero.";
         statusEl.className = "status error";
         return;
       }
-  
+
       if (!conceptoSelectValue) {
         statusEl.textContent = "⚠️ Debés seleccionar un concepto.";
         statusEl.className = "status error";
         return;
       }
-  
+
       let conceptoFinal = conceptoSelectValue;
       if (conceptoSelectValue === "Otro") {
         if (!conceptoOtroValue) {
@@ -319,81 +356,88 @@
         }
         conceptoFinal = conceptoOtroValue;
       }
-  
+
       const params = new URLSearchParams({
         monto: String(monto),
         concepto: conceptoFinal,
         asistencia: asistencia,
         notas: notas,
       });
-  
+
       try {
         // Registrar ofrenda (no necesitamos leer respuesta)
         await fetch(`${SCRIPT_URL}?${params.toString()}`, {
           method: "GET",
           mode: "no-cors",
         });
-  
+
         statusEl.textContent = "✅ Ofrenda registrada.";
         statusEl.className = "status ok";
         form.reset();
         conceptoOtroContainer.style.display = "none";
-  
-        // Habilitar botón de gráfico
-        verGraficoBtn.disabled = false;
+
+        // Si ya hay un tipo de gráfico seleccionado, refrescarlo
+        const tipoActual = tipoGraficoSelect.value;
+        if (tipoActual === "CO" || tipoActual === "CP") {
+          cargarYMostrarGrafico(tipoActual);
+        }
       } catch (err) {
         statusEl.textContent = "❌ Error de conexión: " + err.toString();
         statusEl.className = "status error";
       }
     });
-  
+
     // Cargar pivot desde Apps Script y dibujar gráfico
     async function cargarYMostrarGrafico(tipo) {
+      if (!tipo) {
+        graficoContainer.style.display = "none";
+        return;
+      }
+
       try {
         const cfg = configPorTipo[tipo] || configPorTipo.CO;
         statusEl.textContent = "Cargando gráfico...";
         statusEl.className = "status";
-  
+
         const url = `${SCRIPT_URL}?mode=pivot&tipo=${encodeURIComponent(tipo)}`;
         const res = await fetch(url);
         if (!res.ok) {
           throw new Error("HTTP " + res.status);
         }
-  
+
         const data = await res.json();
         const headers = data.headers || [];
         let rows = data.rows || [];
-  
+
         // Filtrar filas vacías (asumimos: 0=fecha, 1=monto, 2=asistencia)
         rows = rows.filter(
           (r) => r && r[0] !== "" && r[1] !== "" && r[1] != null
         );
-  
+
         if (!rows.length) {
           statusEl.textContent = "⚠️ No hay datos para este gráfico.";
           statusEl.className = "status error";
           graficoContainer.style.display = "none";
           return;
         }
-  
-        // FORMATEAR FECHAS / LABELS
+
         const labels = rows.map((r) => formatearFechaLabel(r[0]));
         const valoresMonto = rows.map((r) => Number(r[1]) || 0);
         const valoresAsistencia = rows.map((r) =>
           r.length > 2 ? Number(r[2]) || 0 : 0
         );
-  
+
         graficoContainer.style.display = "block";
-  
+
         // Destruir gráfico previo si existe
         if (graficoChart) {
           graficoChart.destroy();
         }
-  
+
         const ctx = graficoCanvas.getContext("2d");
-  
+
         graficoChart = new Chart(ctx, {
-          type: "line", // base: line chart
+          type: "line",
           data: {
             labels,
             datasets: [
@@ -404,9 +448,19 @@
                 backgroundColor: cfg.areaColor,
                 borderWidth: 2,
                 fill: true,              // área
-                stepped: "middle",       // stepped area
+                stepped: "middle",       // área escalonada
                 yAxisID: "y",
-                tension: 0,              // sin curvas para el escalonado
+                tension: 0,
+                datalabels: {
+                  anchor: "end",
+                  align: "top",
+                  formatter: (value) => {
+                    if (!value) return "";
+                    return new Intl.NumberFormat("es-CR", {
+                      maximumFractionDigits: 0,
+                    }).format(value);
+                  },
+                },
               },
               {
                 label: "Asistencia",
@@ -414,16 +468,38 @@
                 borderColor: asistenciaColor,
                 backgroundColor: "transparent",
                 borderWidth: 2,
-                fill: false,             // solo línea
+                fill: false,
                 yAxisID: "y1",
                 tension: 0.2,
                 pointRadius: 3,
+                datalabels: {
+                  anchor: "end",
+                  align: "bottom",
+                  formatter: (value) => (value ? value : ""),
+                },
               },
             ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            plugins: {
+              datalabels: {
+                color: "#222",
+                font: {
+                  size: 9,
+                },
+                clamp: true,
+                clip: true,
+              },
+              legend: {
+                display: false, // usamos leyenda personalizada
+              },
+              title: {
+                display: true,
+                text: cfg.label,
+              },
+            },
             scales: {
               y: {
                 beginAtZero: true,
@@ -445,19 +521,10 @@
                 },
               },
             },
-            plugins: {
-              legend: {
-                display: false, // usamos leyenda personalizada
-              },
-              title: {
-                display: true,
-                text: cfg.label,
-              },
-            },
           },
         });
-  
-        // Leyenda personalizada: arriba ofrendas, abajo asistencia
+
+        // Leyenda personalizada
         customLegendEl.innerHTML = `
           <div style="margin-bottom:2px;">
             <span style="display:inline-block;width:14px;height:10px;background:${cfg.areaColor};border:2px solid ${cfg.borderColor};border-radius:2px;margin-right:4px;"></span>
@@ -468,37 +535,39 @@
             Asistencia (línea verde)
           </div>
         `;
-  
+
         // Texto de análisis
         const sumMonto = valoresMonto.reduce((a, b) => a + b, 0);
         const avgMonto = sumMonto / valoresMonto.length;
-  
+
         const sumAsist = valoresAsistencia.reduce((a, b) => a + b, 0);
         const validAsist = valoresAsistencia.filter((v) => v > 0);
         const avgAsist =
           validAsist.length > 0 ? sumAsist / validAsist.length : 0;
-  
+
         const first = valoresMonto[0];
         const last = valoresMonto[valoresMonto.length - 1];
         let tendencia = "estable";
         if (last > first * 1.1) tendencia = "al alza";
         else if (last < first * 0.9) tendencia = "a la baja";
-  
+
         const formatterCRC = new Intl.NumberFormat("es-CR", {
           style: "currency",
           currency: "CRC",
           maximumFractionDigits: 0,
         });
-  
+
         resumenTexto.textContent =
           `Promedio de ofrendas por culto: ${formatterCRC.format(
             avgMonto || 0
           )}. ` +
           (avgAsist
-            ? `Asistencia promedio: ${avgAsist.toFixed(0)} personas. `
+            ? `Asistencia promedio: ${avgAsist.toFixed(
+                0
+              )} personas. `
             : "") +
           `La tendencia de las ofrendas es ${tendencia}.`;
-  
+
         statusEl.textContent = "";
         statusEl.className = "status";
       } catch (err) {
@@ -507,13 +576,25 @@
         graficoContainer.style.display = "none";
       }
     }
-  
-    // Botón de gráfico
-    verGraficoBtn.addEventListener("click", () => {
-      const tipo = tipoGraficoSelect.value || "CO";
+
+    // Cambio en el dropdown de tipo de culto dispara el gráfico
+    tipoGraficoSelect.addEventListener("change", () => {
+      const tipo = tipoGraficoSelect.value;
       cargarYMostrarGrafico(tipo);
+    });
+
+    // Botón para ampliar / reducir gráfico
+    let expanded = false;
+    toggleSizeBtn.addEventListener("click", () => {
+      expanded = !expanded;
+      if (expanded) {
+        graficoContainer.classList.add("expanded-chart");
+        toggleSizeBtn.textContent = "Reducir gráfico";
+      } else {
+        graficoContainer.classList.remove("expanded-chart");
+        toggleSizeBtn.textContent = "Ampliar gráfico";
+      }
     });
   </script>
 </body>
 </html>
-
