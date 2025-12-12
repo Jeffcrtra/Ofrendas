@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>3.02 Registro de Ofrendas – Casa de Oración</title>
+  <title>3.25 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -64,11 +64,21 @@
       border: none;
       cursor: pointer;
       font-weight: 600;
-      background: #4caf50;
-      color: #fff;
     }
     button:active {
       transform: translateY(1px);
+    }
+    .btn-guardar {
+      background: #4caf50;
+      color: #fff;
+    }
+    .btn-datos {
+      background: #1976d2;
+      color: #fff;
+    }
+    .btn-datos[disabled] {
+      background: #b0bec5;
+      cursor: not-allowed;
     }
     .status {
       margin-top: 0.8rem;
@@ -90,11 +100,17 @@
     input[type=number] {
       -moz-appearance: textfield;
     }
+
+    .graphs-container {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
   </style>
 </head>
 <body>
   <div class="logo">
-    <!-- Asegúrate de que el archivo exista en el repo con este nombre -->
     <img src="CasaDeOracionLogo.jpg" alt="Casa de Oración">
   </div>
 
@@ -131,59 +147,98 @@
       placeholder="Detalles adicionales (opcional)"
     ></textarea>
 
-    <button type="submit">Guardar</button>
+    <button type="submit" class="btn-guardar">Guardar</button>
 
     <div id="status" class="status"></div>
   </form>
 
-    <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyso7TcubPhkEcxsgYXK1VbLHNirsqzGtylvlyRQfkZ2bi3gws0tiATYEpEhkrAF992MQ/exec";
-  
-    const form = document.getElementById('ofrendaForm');
-    const statusEl = document.getElementById('status');
-  
-    form.addEventListener('submit', async (e) => {
+  <!-- Botones para ver gráficos -->
+  <div class="graphs-container">
+    <button id="verCOBtn" class="btn-datos" disabled>
+      Ver gráfico CO (Culto de Oración)
+    </button>
+    <button id="verCPBtn" class="btn-datos" disabled>
+      Ver gráfico CP (Culto Principal)
+    </button>
+  </div>
+
+  <script>
+    // URL del Web App de Apps Script para guardar registros
+    const SCRIPT_URL =
+      "https://script.google.com/macros/s/AKfycbyiESV-GMfq48Tvts8BK8WOc3_jS4bU9tTlRoBxNpp-s-LN1O1Qf1cpL4y30wT94USCMQ/exec";
+
+    // URLs de los gráficos publicados (pubchart)
+    const GRAPH_CO_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ApTb9ak2QTSVcswEo0vF655FuLZkmR75CZ2SpmgI0ZD_OtJaEGloAmytg6vJy-g-KovswTV2laHg/pubchart?oid=151386483&format=interactive";
+
+    // 👉 Cambia esto por el pubchart real de CP cuando lo tengas:
+    const GRAPH_CP_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ApTb9ak2QTSVcswEo0vF655FuLZkmR75CZ2SpmgI0ZD_OtJaEGloAmytg6vJy-g-KovswTV2laHg/pubchart?oid=151386483&format=interactive";
+
+    const form = document.getElementById("ofrendaForm");
+    const statusEl = document.getElementById("status");
+    const verCOBtn = document.getElementById("verCOBtn");
+    const verCPBtn = document.getElementById("verCPBtn");
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       statusEl.textContent = "Enviando...";
       statusEl.className = "status";
-  
-      const montoRaw = document.getElementById('monto').value;
+
+      const montoRaw = document.getElementById("monto").value;
       const monto = parseInt(montoRaw, 10);
-      const concepto = document.getElementById('concepto').value;
-      const notas = document.getElementById('notas').value;
-  
+      const concepto = document.getElementById("concepto").value;
+      const notas = document.getElementById("notas").value;
+
       if (isNaN(monto)) {
         statusEl.textContent = "⚠️ El monto debe ser un número entero.";
         statusEl.className = "status error";
         return;
       }
-  
-      // Construimos la URL con querystring
+
       const params = new URLSearchParams({
         monto: String(monto),
         concepto: concepto,
-        notas: notas
+        notas: notas,
       });
-  
+
       try {
         await fetch(`${SCRIPT_URL}?${params.toString()}`, {
           method: "GET",
-          mode: "no-cors"   // disparamos la petición sin pelear con CORS
+          mode: "no-cors", // disparamos la petición sin pelear con CORS
         });
-  
-        statusEl.textContent = "✅ Ofrenda registrada (ver hoja ingresos).";
+
+        statusEl.textContent =
+          "✅ Ofrenda registrada (ver hoja Ingresos / gráficos).";
         statusEl.className = "status ok";
         form.reset();
-  
+
+        // Habilitar los botones de gráficos
+        verCOBtn.disabled = false;
+        verCPBtn.disabled = false;
       } catch (err) {
         statusEl.textContent = "❌ Error de conexión real: " + err.toString();
         statusEl.className = "status error";
       }
     });
-  </script>
 
-  
+    // Abrir gráfico CO
+    verCOBtn.addEventListener("click", () => {
+      if (!GRAPH_CO_URL) {
+        alert("Falta configurar la URL del gráfico CO.");
+        return;
+      }
+      window.open(GRAPH_CO_URL, "_blank");
+    });
+
+    // Abrir gráfico CP
+    verCPBtn.addEventListener("click", () => {
+      if (!GRAPH_CP_URL) {
+        alert("Falta configurar la URL del gráfico CP.");
+        return;
+      }
+      window.open(GRAPH_CP_URL, "_blank");
+    });
+  </script>
 </body>
 </html>
-
-
