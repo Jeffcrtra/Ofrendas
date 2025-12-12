@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Registro de Ofrendas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 1.5rem;
+      background: #f5f5f5;
+    }
+    h1 {
+      font-size: 1.4rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    form {
+      background: #ffffff;
+      padding: 1rem 1.2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    label {
+      display: block;
+      font-size: 0.9rem;
+      margin-top: 0.8rem;
+      margin-bottom: 0.2rem;
+    }
+    input, textarea, button {
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+    input, textarea {
+      padding: 0.5rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+    input:focus, textarea:focus {
+      border-color: #4a90e2;
+    }
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      background: #4caf50;
+      color: #fff;
+    }
+    button:active {
+      transform: translateY(1px);
+    }
+    .status {
+      margin-top: 0.8rem;
+      font-size: 0.9rem;
+    }
+    .status.ok {
+      color: #2e7d32;
+    }
+    .status.error {
+      color: #c62828;
+    }
+  </style>
+</head>
+<body>
+  <h1>Registro de Ofrendas</h1>
+
+  <form id="ofrendaForm">
+    <!-- Fecha puede ser automática, así que no se muestra; la pone el servidor.
+         Si luego quieres elegirla manualmente, agregamos aquí un input date. -->
+
+    <label for="monto">Monto (₡)</label>
+    <input type="number" id="monto" name="monto" required min="0" step="0.01" />
+
+    <label for="concepto">Concepto</label>
+    <input type="text" id="concepto" name="concepto" required placeholder="Diezmo, ofrenda, especial..." />
+
+    <label for="notas">Notas</label>
+    <textarea id="notas" name="notas" placeholder="Detalles adicionales (opcional)"></textarea>
+
+    <button type="submit">Guardar</button>
+
+    <div id="status" class="status"></div>
+  </form>
+
+  <script>
+    // Pega aquí tu URL del Web App de Apps Script
+    const SCRIPT_URL = "https://script.google.com/macros/s/XXXXXXXXXXXX/exec";
+
+    const form = document.getElementById('ofrendaForm');
+    const statusEl = document.getElementById('status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      statusEl.textContent = "Enviando...";
+      statusEl.className = "status";
+
+      const monto = document.getElementById('monto').value;
+      const concepto = document.getElementById('concepto').value;
+      const notas = document.getElementById('notas').value;
+
+      // No mandamos fecha: el servidor usa la fecha actual
+      const payload = {
+        monto,
+        concepto,
+        notas
+      };
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          statusEl.textContent = "✅ Ofrenda registrada correctamente.";
+          statusEl.className = "status ok";
+          form.reset();
+        } else {
+          statusEl.textContent = "⚠️ Error al guardar: " + (data.error || "desconocido");
+          statusEl.className = "status error";
+        }
+      } catch (err) {
+        statusEl.textContent = "❌ Error de conexión: " + err.toString();
+        statusEl.className = "status error";
+      }
+    });
+  </script>
+</body>
+</html>
