@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>2.35 Registro de Ofrendas – Casa de Oración</title>
+  <title>2.40 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -137,60 +137,51 @@
   </form>
 
   <script>
-    // URL del Web App de Apps Script
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiESV-GMfq48Tvts8BK8WOc3_jS4bU9tTlRoBxNpp-s-LN1O1Qf1cpL4y30wT94USCMQ/exec";
-
+  
     const form = document.getElementById('ofrendaForm');
     const statusEl = document.getElementById('status');
-
+  
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       statusEl.textContent = "Enviando...";
       statusEl.className = "status";
-
+  
       const montoRaw = document.getElementById('monto').value;
-      const monto = parseInt(montoRaw, 10); // fuerza entero
+      const monto = parseInt(montoRaw, 10);
       const concepto = document.getElementById('concepto').value;
       const notas = document.getElementById('notas').value;
-
+  
       if (isNaN(monto)) {
         statusEl.textContent = "⚠️ El monto debe ser un número entero.";
         statusEl.className = "status error";
         return;
       }
-
-      const payload = {
-        monto,
-        concepto,
-        notas
-        // sin fecha: la pone el servidor con la fecha actual
-      };
-
+  
+      const formData = new FormData();
+      formData.append('monto', monto);
+      formData.append('concepto', concepto);
+      formData.append('notas', notas);
+  
       try {
-        const res = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
+          mode: "no-cors",   // 🔑 clave para que el navegador no bloquee por CORS
+          body: formData
         });
-
-        const data = await res.json();
-
-        if (data.success) {
-          statusEl.textContent = "✅ Ofrenda registrada correctamente.";
-          statusEl.className = "status ok";
-          form.reset();
-        } else {
-          statusEl.textContent = "⚠️ Error al guardar: " + (data.error || "desconocido");
-          statusEl.className = "status error";
-        }
+  
+        // En modo no-cors no podemos leer respuesta,
+        // pero si no hubo error de red asumimos éxito.
+        statusEl.textContent = "✅ Ofrenda registrada (revisa la hoja para confirmar).";
+        statusEl.className = "status ok";
+        form.reset();
+  
       } catch (err) {
-        statusEl.textContent = "❌ Error de conexión: " + err.toString();
+        statusEl.textContent = "❌ Error de conexión real: " + err.toString();
         statusEl.className = "status error";
       }
     });
   </script>
+  
 </body>
 </html>
-
