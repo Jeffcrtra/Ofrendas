@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>4.05 Registro de Ofrendas – Casa de Oración</title>
+  <title>4.15 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -132,8 +132,26 @@
   <h1>Registro de Ofrendas</h1>
 
   <form id="ofrendaForm">
-    <!-- Fecha se pone automática en el servidor -->
-
+    <!-- Primero concepto -->
+    <label for="conceptoSelect">Concepto</label>
+    <select id="conceptoSelect" name="conceptoSelect" required>
+      <option value="" disabled selected>Seleccioná un concepto</option>
+      <option value="Culto Principal">Culto Principal</option>
+      <option value="Culto de Oración">Culto de Oración</option>
+      <option value="Otro">Otro</option>
+    </select>
+    
+    <div id="conceptoOtroContainer" style="display:none; margin-top:0.5rem;">
+      <label for="conceptoOtro">Especificar concepto</label>
+      <input
+        type="text"
+        id="conceptoOtro"
+        name="conceptoOtro"
+        placeholder="Ej: Actividad especial, misioneros..."
+      />
+    </div>
+    
+    <!-- Luego monto -->
     <label for="monto">Monto (₡)</label>
     <input
       type="number"
@@ -145,27 +163,8 @@
       inputmode="numeric"
       pattern="[0-9]*"
     />
-
-    <!-- Nuevo: dropdown de concepto -->
-    <label for="conceptoSelect">Concepto</label>
-    <select id="conceptoSelect" name="conceptoSelect" required>
-      <option value="" disabled selected>Seleccioná un concepto</option>
-      <option value="Culto Principal">Culto Principal</option>
-      <option value="Culto de Oración">Culto de Oración</option>
-      <option value="Otro">Otro</option>
-    </select>
-
-    <!-- Campo extra sólo cuando se elige "Otro" -->
-    <div id="conceptoOtroContainer" style="display:none; margin-top:0.5rem;">
-      <label for="conceptoOtro">Especificar concepto</label>
-      <input
-        type="text"
-        id="conceptoOtro"
-        name="conceptoOtro"
-        placeholder="Ej: Actividad especial, misioneros..."
-      />
-    </div>
-
+    
+    <!-- Luego asistencia -->
     <label for="asistencia">Asistencia</label>
     <input
       type="number"
@@ -177,17 +176,18 @@
       pattern="[0-9]*"
       placeholder="Cantidad de personas"
     />
-
+    
+    <!-- Luego notas -->
     <label for="notas">Notas</label>
     <textarea
       id="notas"
       name="notas"
       placeholder="Detalles adicionales (opcional)"
     ></textarea>
-
+    
     <button type="submit" class="btn-guardar">Guardar</button>
-
     <div id="status" class="status"></div>
+
   </form>
 
   <!-- Botones para ver gráficos -->
@@ -320,5 +320,6 @@
   </script>
 </body>
 </html>
+
 
 
