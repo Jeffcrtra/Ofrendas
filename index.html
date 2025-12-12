@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>5.38 Registro de Ofrendas – Casa de Oración</title>
+  <title>5.45 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Chart.js y plugin de data labels -->
@@ -154,18 +154,21 @@
       font-size: 0.9rem;
     }
 
-    #creditLine {
-      margin-top: 0.4rem;
-      font-size: 0.8rem;
-      opacity: 0.9;
+    #appFooter {
+      margin-top: 2rem;
+      padding: 1rem 0;
       text-align: center;
+      font-size: 0.85rem;
+      color: #555;
+      border-top: 1px solid #ccc;
+      opacity: 0.9;
     }
-    #creditLine a {
+    #appFooter a {
       color: #1565c0;
       text-decoration: none;
       font-weight: 500;
     }
-    #creditLine a:hover {
+    #appFooter a:hover {
       text-decoration: underline;
     }
   </style>
@@ -257,23 +260,13 @@
     <div id="resumenBox">
       <div id="resumenTexto"></div>
     </div>
-  </div>
+  </div> <!-- cierre de graficoContainer -->
 
-</div> <!-- cierre de graficoContainer -->
-  
-   <div id="appFooter" style="
-    margin-top: 2rem;
-    padding: 1rem 0;
-    text-align: center;
-    font-size: 0.85rem;
-    color: #555;
-    border-top: 1px solid #ccc;
-    opacity: 0.9;
-  ">
+  <!-- Footer global -->
+  <div id="appFooter">
     © <span id="footerYear"></span> Ofrendas Analytics · Creado por 
     <a href="https://www.linkedin.com/in/jeffrey-trigueros-371191123/"
-       target="_blank" rel="noopener noreferrer"
-       style="color:#1565c0; text-decoration:none; font-weight:500;">
+       target="_blank" rel="noopener noreferrer">
        Jeffrey Trigueros
     </a>
     <br>
@@ -283,7 +276,9 @@
   </div>
 
   <script>
+    // Año dinámico en el footer
     document.getElementById("footerYear").textContent = new Date().getFullYear();
+
     // Registrar plugin de datalabels en Chart.js
     Chart.register(ChartDataLabels);
 
@@ -495,7 +490,7 @@
               {
                 label: "Asistencia",
                 data: valoresAsistencia,
-                borderColor: "rgba(46, 125, 50, 1)",
+                borderColor: asistenciaColor,
                 backgroundColor: "transparent",
                 borderWidth: 2,
                 fill: false,
@@ -561,7 +556,7 @@
             Ofrendas (área escalonada)
           </div>
           <div>
-            <span style="display:inline-block;width:14px;height:0;border-top:2px solid rgba(46,125,50,1);margin-right:4px;position:relative;top:-2px;"></span>
+            <span style="display:inline-block;width:14px;height:0;border-top:2px solid ${asistenciaColor};margin-right:4px;position:relative;top:-2px;"></span>
             Asistencia (línea verde)
           </div>
         `;
@@ -631,5 +626,3 @@
   </script>
 </body>
 </html>
-
-
