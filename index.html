@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>4.41 Registro de Ofrendas – Casa de Oración</title>
+  <title>4.55 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Chart.js desde CDN -->
@@ -111,12 +111,16 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      background: #ffffff;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
 
     #graficoContainer {
       margin-top: 1rem;
       width: 100%;
-      height: 360px; /* alto fijo cómodo para el gráfico */
+      height: 360px;
       display: none;
       background: #ffffff;
       border-radius: 12px;
@@ -125,7 +129,11 @@
     }
     #graficoCanvas {
       width: 100%;
-      height: 100%;
+      height: 70%;
+    }
+    #resumenTexto {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
     }
   </style>
 </head>
@@ -194,38 +202,57 @@
     <div id="status" class="status"></div>
   </form>
 
-  <!-- Botones para ver gráficos (CO / CP) -->
+  <!-- Controles de gráfico -->
   <div class="graphs-container">
-    <button id="verCOBtn" class="btn-datos" disabled>
-      Ver gráfico CO (Culto de Oración)
-    </button>
-    <button id="verCPBtn" class="btn-datos" disabled>
-      Ver gráfico CP (Culto Principal)
+    <label for="tipoGrafico">Tipo de culto a visualizar</label>
+    <select id="tipoGrafico">
+      <option value="CO">Culto de Oración (CO)</option>
+      <option value="CP">Culto Principal (CP)</option>
+    </select>
+    <button id="verGraficoBtn" class="btn-datos" disabled>
+      Ver gráfico
     </button>
   </div>
 
   <!-- Contenedor del gráfico en HTML -->
   <div id="graficoContainer">
     <canvas id="graficoCanvas"></canvas>
+    <div id="resumenTexto"></div>
   </div>
 
   <script>
     const SCRIPT_URL =
-      "https://script.google.com/macros/s/AKfycbz0Mo9Iudj9okE7LEprM-Z6rQpTQ6wh5Hcl0-MfAgF4HMt672RT_PzU5WnnFQACGwFhLQ/exec";
+      "https://script.google.com/macros/s/AKfycbxGEAdbTqpSQlTBBibm0ulRHyZPj93A83bfeSyWuDG3Hcqmd4IdserjMgIPZjRDvOVW1Q/exec";
 
     const form = document.getElementById("ofrendaForm");
     const statusEl = document.getElementById("status");
-    const verCOBtn = document.getElementById("verCOBtn");
-    const verCPBtn = document.getElementById("verCPBtn");
-    const graficoContainer = document.getElementById("graficoContainer");
-    const graficoCanvas = document.getElementById("graficoCanvas");
-
     const conceptoSelect = document.getElementById("conceptoSelect");
     const conceptoOtroContainer = document.getElementById("conceptoOtroContainer");
     const conceptoOtroInput = document.getElementById("conceptoOtro");
     const asistenciaInput = document.getElementById("asistencia");
+    const tipoGraficoSelect = document.getElementById("tipoGrafico");
+    const verGraficoBtn = document.getElementById("verGraficoBtn");
+
+    const graficoContainer = document.getElementById("graficoContainer");
+    const graficoCanvas = document.getElementById("graficoCanvas");
+    const resumenTexto = document.getElementById("resumenTexto");
 
     let graficoChart = null;
+
+    const configPorTipo = {
+      CO: {
+        label: "Culto de Oración",
+        colorBar: "rgba(25, 118, 210, 0.6)",
+        colorBorder: "rgba(25, 118, 210, 1)",
+        colorLine: "rgba(25, 118, 210, 0.9)",
+      },
+      CP: {
+        label: "Culto Principal",
+        colorBar: "rgba(239, 108, 0, 0.6)",
+        colorBorder: "rgba(239, 108, 0, 1)",
+        colorLine: "rgba(239, 108, 0, 0.9)",
+      },
+    };
 
     // Mostrar/ocultar campo "Otro"
     conceptoSelect.addEventListener("change", () => {
@@ -269,7 +296,8 @@
       let conceptoFinal = conceptoSelectValue;
       if (conceptoSelectValue === "Otro") {
         if (!conceptoOtroValue) {
-          statusEl.textContent = "⚠️ Especificá el concepto cuando elijas 'Otro'.";
+          statusEl.textContent =
+            "⚠️ Especificá el concepto cuando elijas 'Otro'.";
           statusEl.className = "status error";
           return;
         }
@@ -284,7 +312,7 @@
       });
 
       try {
-        // Seguimos usando GET + no-cors para registrar (ya te funciona bien)
+        // Registrar ofrenda (no necesitamos leer respuesta)
         await fetch(`${SCRIPT_URL}?${params.toString()}`, {
           method: "GET",
           mode: "no-cors",
@@ -295,8 +323,8 @@
         form.reset();
         conceptoOtroContainer.style.display = "none";
 
-        verCOBtn.disabled = false;
-        verCPBtn.disabled = false;
+        // Habilitar botón de gráfico
+        verGraficoBtn.disabled = false;
       } catch (err) {
         statusEl.textContent = "❌ Error de conexión: " + err.toString();
         statusEl.className = "status error";
@@ -304,13 +332,14 @@
     });
 
     // Cargar pivot desde Apps Script y dibujar gráfico
-    async function cargarYMostrarGrafico(tipo, titulo) {
+    async function cargarYMostrarGrafico(tipo) {
       try {
+        const cfg = configPorTipo[tipo] || configPorTipo.CO;
         statusEl.textContent = "Cargando gráfico...";
         statusEl.className = "status";
 
         const url = `${SCRIPT_URL}?mode=pivot&tipo=${encodeURIComponent(tipo)}`;
-        const res = await fetch(url); // aquí SÍ necesitamos leer la respuesta
+        const res = await fetch(url);
         if (!res.ok) {
           throw new Error("HTTP " + res.status);
         }
@@ -319,8 +348,10 @@
         const headers = data.headers || [];
         let rows = data.rows || [];
 
-        // Filtramos filas vacías
-        rows = rows.filter(r => r && r[0] !== "" && r[1] !== "" && r[1] != null);
+        // Filtrar filas vacías (primeras dos columnas: fecha, monto; tercera: asistencia)
+        rows = rows.filter(
+          (r) => r && r[0] !== "" && r[1] !== "" && r[1] != null
+        );
 
         if (!rows.length) {
           statusEl.textContent = "⚠️ No hay datos para este gráfico.";
@@ -329,9 +360,11 @@
           return;
         }
 
-        // Asumimos: columna 0 = etiqueta (ej. fecha), columna 1 = valor (ej. monto)
-        const labels = rows.map(r => String(r[0]));
-        const values = rows.map(r => Number(r[1]) || 0);
+        const labels = rows.map((r) => String(r[0]));
+        const valoresMonto = rows.map((r) => Number(r[1]) || 0);
+        const valoresAsistencia = rows.map((r) =>
+          r.length > 2 ? Number(r[2]) || 0 : 0
+        );
 
         graficoContainer.style.display = "block";
 
@@ -341,13 +374,26 @@
         }
 
         graficoChart = new Chart(graficoCanvas.getContext("2d"), {
-          type: "bar",
           data: {
             labels,
             datasets: [
               {
-                label: titulo || headers[1] || "Valor",
-                data: values,
+                type: "bar",
+                label: "Ofrendas (₡)",
+                data: valoresMonto,
+                backgroundColor: cfg.colorBar,
+                borderColor: cfg.colorBorder,
+                borderWidth: 1,
+                yAxisID: "y",
+              },
+              {
+                type: "line",
+                label: "Asistencia",
+                data: valoresAsistencia,
+                borderColor: cfg.colorLine,
+                backgroundColor: "transparent",
+                yAxisID: "y1",
+                tension: 0.2,
               },
             ],
           },
@@ -357,10 +403,68 @@
             scales: {
               y: {
                 beginAtZero: true,
+                position: "left",
+                title: {
+                  display: true,
+                  text: "Ofrendas (₡)",
+                },
+              },
+              y1: {
+                beginAtZero: true,
+                position: "right",
+                grid: {
+                  drawOnChartArea: false,
+                },
+                title: {
+                  display: true,
+                  text: "Asistencia",
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                position: "top",
+              },
+              title: {
+                display: true,
+                text: cfg.label,
               },
             },
           },
         });
+
+        // Texto de análisis
+        const sumMonto = valoresMonto.reduce((a, b) => a + b, 0);
+        const avgMonto = sumMonto / valoresMonto.length;
+
+        const sumAsist = valoresAsistencia.reduce((a, b) => a + b, 0);
+        const avgAsist =
+          valoresAsistencia.filter((v) => v > 0).length > 0
+            ? sumAsist / valoresAsistencia.filter((v) => v > 0).length
+            : 0;
+
+        const first = valoresMonto[0];
+        const last = valoresMonto[valoresMonto.length - 1];
+        let tendencia = "estable";
+        if (last > first * 1.1) tendencia = "a subir";
+        else if (last < first * 0.9) tendencia = "a bajar";
+
+        const formatterCRC = new Intl.NumberFormat("es-CR", {
+          style: "currency",
+          currency: "CRC",
+          maximumFractionDigits: 0,
+        });
+
+        resumenTexto.textContent =
+          `Promedio de ofrendas por culto: ${formatterCRC.format(
+            avgMonto || 0
+          )}. ` +
+          (avgAsist
+            ? `Asistencia promedio: ${avgAsist.toFixed(
+                0
+              )} personas. `
+            : "") +
+          `La tendencia de las ofrendas es ${tendencia}.`;
 
         statusEl.textContent = "";
         statusEl.className = "status";
@@ -371,15 +475,11 @@
       }
     }
 
-    // Botones de gráficos
-    verCOBtn.addEventListener("click", () => {
-      cargarYMostrarGrafico("CO", "Culto de Oración");
-    });
-
-    verCPBtn.addEventListener("click", () => {
-      cargarYMostrarGrafico("CP", "Culto Principal");
+    // Botón de gráfico
+    verGraficoBtn.addEventListener("click", () => {
+      const tipo = tipoGraficoSelect.value || "CO";
+      cargarYMostrarGrafico(tipo);
     });
   </script>
 </body>
 </html>
-
