@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>5.45 Registro de Ofrendas – Casa de Oración</title>
+  <title>5.55 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Chart.js y plugin de data labels -->
@@ -260,20 +260,20 @@
     <div id="resumenBox">
       <div id="resumenTexto"></div>
     </div>
-  </div> <!-- cierre de graficoContainer -->
 
-  <!-- Footer global -->
-  <div id="appFooter">
-    © <span id="footerYear"></span> Ofrendas Analytics · Creado por 
-    <a href="https://www.linkedin.com/in/jeffrey-trigueros-371191123/"
-       target="_blank" rel="noopener noreferrer">
-       Jeffrey Trigueros
-    </a>
-    <br>
-    <span style="font-size:0.8rem;">
-      ¿Querés esta aplicación para tu iglesia? Contáctame.
-    </span>
-  </div>
+    <!-- Footer DENTRO del contenedor del gráfico, DEBAJO del análisis -->
+    <div id="appFooter">
+      © <span id="footerYear"></span> Ofrendas Analytics · Creado por 
+      <a href="https://www.linkedin.com/in/jeffrey-trigueros-371191123/"
+        target="_blank" rel="noopener noreferrer">
+        Jeffrey Trigueros
+      </a>
+      <br>
+      <span style="font-size:0.8rem;">
+        ¿Querés esta aplicación para tu iglesia? Contáctame.
+      </span>
+    </div>
+  </div> <!-- cierre de graficoContainer -->
 
   <script>
     // Año dinámico en el footer
@@ -433,7 +433,6 @@
         }
 
         const data = await res.json();
-        const headers = data.headers || [];
         let rows = data.rows || [];
 
         // Filtrar filas vacías (asumimos: 0=fecha, 1=monto, 2=asistencia)
