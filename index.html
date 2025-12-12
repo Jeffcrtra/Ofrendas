@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>5.32 Registro de Ofrendas – Casa de Oración</title>
+  <title>5.38 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Chart.js y plugin de data labels -->
@@ -259,16 +259,31 @@
     </div>
   </div>
 
-  <!-- Crédito fuera del box de análisis -->
-  <div id="creditLine">
-    Aplicación creada por
+</div> <!-- cierre de graficoContainer -->
+  
+   <div id="appFooter" style="
+    margin-top: 2rem;
+    padding: 1rem 0;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #555;
+    border-top: 1px solid #ccc;
+    opacity: 0.9;
+  ">
+    © <span id="footerYear"></span> Ofrendas Analytics · Creado por 
     <a href="https://www.linkedin.com/in/jeffrey-trigueros-371191123/"
-       target="_blank" rel="noopener noreferrer">
-      Jeffrey Trigueros
-    </a>.
+       target="_blank" rel="noopener noreferrer"
+       style="color:#1565c0; text-decoration:none; font-weight:500;">
+       Jeffrey Trigueros
+    </a>
+    <br>
+    <span style="font-size:0.8rem;">
+      ¿Querés esta aplicación para tu iglesia? Contáctame.
+    </span>
   </div>
 
   <script>
+    document.getElementById("footerYear").textContent = new Date().getFullYear();
     // Registrar plugin de datalabels en Chart.js
     Chart.register(ChartDataLabels);
 
@@ -616,4 +631,5 @@
   </script>
 </body>
 </html>
+
 
