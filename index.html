@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>3.37 Registro de Ofrendas – Casa de Oración</title>
+  <title>4.05 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -166,6 +166,18 @@
       />
     </div>
 
+    <label for="asistencia">Asistencia</label>
+    <input
+      type="number"
+      id="asistencia"
+      name="asistencia"
+      min="0"
+      step="1"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      placeholder="Cantidad de personas"
+    />
+
     <label for="notas">Notas</label>
     <textarea
       id="notas"
@@ -198,7 +210,7 @@
 
   <script>
     const SCRIPT_URL =
-      "https://script.google.com/macros/s/AKfycbyT-ra3bCQUxgEtDpx6rr5D-vXbbBzr9GSs07RgeuJ-bJaJwynfOvyNOubfh_iB2D85NQ/exec";
+      "https://script.google.com/macros/s/AKfycbywHGrQNIrD98VX26J1u959rFGqr33454AKLWKy3MwaUWArROyPZkFpCh4q_iitYr1kSg/exec";
 
     // Gráficos publicados
     const GRAPH_CO_URL =
@@ -235,9 +247,15 @@
 
       const montoRaw = document.getElementById("monto").value;
       const monto = parseInt(montoRaw, 10);
+      
       const conceptoSelectValue = conceptoSelect.value;
       const conceptoOtroValue = conceptoOtroInput.value.trim();
+      
+      const asistenciaRaw = document.getElementById("asistencia").value;
+      const asistencia = asistenciaRaw ? parseInt(asistenciaRaw, 10) : "";
+      
       const notas = document.getElementById("notas").value;
+
 
       if (isNaN(monto)) {
         statusEl.textContent = "⚠️ El monto debe ser un número entero.";
@@ -262,9 +280,10 @@
       }
 
       const params = new URLSearchParams({
-        monto: String(monto),
-        concepto: conceptoFinal,
-        notas: notas,
+          monto: String(monto),
+          concepto: conceptoFinal,
+          asistencia: asistencia,   // 👈 nuevo campo
+          notas: notas,
       });
 
       try {
@@ -301,4 +320,5 @@
   </script>
 </body>
 </html>
+
 
