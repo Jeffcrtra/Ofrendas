@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>3.25 Registro de Ofrendas – Casa de Oración</title>
+  <title>3.35 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -39,18 +39,19 @@
       margin-top: 0.8rem;
       margin-bottom: 0.2rem;
     }
-    input, textarea, button {
+    input, textarea, select, button {
       width: 100%;
       box-sizing: border-box;
       font-size: 1rem;
     }
-    input, textarea {
+    input, textarea, select {
       padding: 0.5rem 0.6rem;
       border-radius: 8px;
       border: 1px solid #ccc;
       outline: none;
+      background: #fff;
     }
-    input:focus, textarea:focus {
+    input:focus, textarea:focus, select:focus {
       border-color: #4a90e2;
     }
     textarea {
@@ -107,6 +108,20 @@
       flex-direction: column;
       gap: 0.5rem;
     }
+
+    #graficoContainer {
+      margin-top: 1rem;
+      width: 100%;
+      min-height: 350px;
+      display: none;
+    }
+    #graficoFrame {
+      width: 100%;
+      height: 350px;
+      border: none;
+      border-radius: 12px;
+      background: #ffffff;
+    }
   </style>
 </head>
 <body>
@@ -131,14 +146,25 @@
       pattern="[0-9]*"
     />
 
-    <label for="concepto">Concepto</label>
-    <input
-      type="text"
-      id="concepto"
-      name="concepto"
-      required
-      placeholder="Diezmo, ofrenda, especial..."
-    />
+    <!-- Nuevo: dropdown de concepto -->
+    <label for="conceptoSelect">Concepto</label>
+    <select id="conceptoSelect" name="conceptoSelect" required>
+      <option value="" disabled selected>Seleccioná un concepto</option>
+      <option value="Culto Principal">Culto Principal</option>
+      <option value="Culto de Oración">Culto de Oración</option>
+      <option value="Otro">Otro</option>
+    </select>
+
+    <!-- Campo extra sólo cuando se elige "Otro" -->
+    <div id="conceptoOtroContainer" style="display:none; margin-top:0.5rem;">
+      <label for="conceptoOtro">Especificar concepto</label>
+      <input
+        type="text"
+        id="conceptoOtro"
+        name="conceptoOtro"
+        placeholder="Ej: Actividad especial, misioneros..."
+      />
+    </div>
 
     <label for="notas">Notas</label>
     <textarea
@@ -162,16 +188,22 @@
     </button>
   </div>
 
+  <!-- Contenedor donde se muestra el gráfico embebido -->
+  <div id="graficoContainer">
+    <iframe
+      id="graficoFrame"
+      allowfullscreen
+    ></iframe>
+  </div>
+
   <script>
-    // URL del Web App de Apps Script para guardar registros
     const SCRIPT_URL =
       "https://script.google.com/macros/s/AKfycbyiESV-GMfq48Tvts8BK8WOc3_jS4bU9tTlRoBxNpp-s-LN1O1Qf1cpL4y30wT94USCMQ/exec";
 
-    // URLs de los gráficos publicados (pubchart)
+    // Gráficos publicados
     const GRAPH_CO_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ApTb9ak2QTSVcswEo0vF655FuLZkmR75CZ2SpmgI0ZD_OtJaEGloAmytg6vJy-g-KovswTV2laHg/pubchart?oid=151386483&format=interactive";
 
-    // 👉 Cambia esto por el pubchart real de CP cuando lo tengas:
     const GRAPH_CP_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ApTb9ak2QTSVcswEo0vF655FuLZkmR75CZ2SpmgI0ZD_OtJaEGloAmytg6vJy-g-KovswTV2laHg/pubchart?oid=151386483&format=interactive";
 
@@ -179,6 +211,22 @@
     const statusEl = document.getElementById("status");
     const verCOBtn = document.getElementById("verCOBtn");
     const verCPBtn = document.getElementById("verCPBtn");
+    const graficoContainer = document.getElementById("graficoContainer");
+    const graficoFrame = document.getElementById("graficoFrame");
+
+    const conceptoSelect = document.getElementById("conceptoSelect");
+    const conceptoOtroContainer = document.getElementById("conceptoOtroContainer");
+    const conceptoOtroInput = document.getElementById("conceptoOtro");
+
+    // Mostrar/ocultar campo "Otro" según selección
+    conceptoSelect.addEventListener("change", () => {
+      if (conceptoSelect.value === "Otro") {
+        conceptoOtroContainer.style.display = "block";
+      } else {
+        conceptoOtroContainer.style.display = "none";
+        conceptoOtroInput.value = "";
+      }
+    });
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -187,7 +235,8 @@
 
       const montoRaw = document.getElementById("monto").value;
       const monto = parseInt(montoRaw, 10);
-      const concepto = document.getElementById("concepto").value;
+      const conceptoSelectValue = conceptoSelect.value;
+      const conceptoOtroValue = conceptoOtroInput.value.trim();
       const notas = document.getElementById("notas").value;
 
       if (isNaN(monto)) {
@@ -196,48 +245,58 @@
         return;
       }
 
+      if (!conceptoSelectValue) {
+        statusEl.textContent = "⚠️ Debés seleccionar un concepto.";
+        statusEl.className = "status error";
+        return;
+      }
+
+      let conceptoFinal = conceptoSelectValue;
+      if (conceptoSelectValue === "Otro") {
+        if (!conceptoOtroValue) {
+          statusEl.textContent = "⚠️ Especificá el concepto cuando elijas 'Otro'.";
+          statusEl.className = "status error";
+          return;
+        }
+        conceptoFinal = conceptoOtroValue;
+      }
+
       const params = new URLSearchParams({
         monto: String(monto),
-        concepto: concepto,
+        concepto: conceptoFinal,
         notas: notas,
       });
 
       try {
         await fetch(`${SCRIPT_URL}?${params.toString()}`, {
           method: "GET",
-          mode: "no-cors", // disparamos la petición sin pelear con CORS
+          mode: "no-cors",
         });
 
-        statusEl.textContent =
-          "✅ Ofrenda registrada (ver hoja Ingresos / gráficos).";
+        statusEl.textContent = "✅ Ofrenda registrada.";
         statusEl.className = "status ok";
         form.reset();
+        conceptoOtroContainer.style.display = "none";
 
-        // Habilitar los botones de gráficos
         verCOBtn.disabled = false;
         verCPBtn.disabled = false;
       } catch (err) {
-        statusEl.textContent = "❌ Error de conexión real: " + err.toString();
+        statusEl.textContent = "❌ Error de conexión: " + err.toString();
         statusEl.className = "status error";
       }
     });
 
-    // Abrir gráfico CO
+    function mostrarGrafico(url) {
+      graficoFrame.src = url;
+      graficoContainer.style.display = "block";
+    }
+
     verCOBtn.addEventListener("click", () => {
-      if (!GRAPH_CO_URL) {
-        alert("Falta configurar la URL del gráfico CO.");
-        return;
-      }
-      window.open(GRAPH_CO_URL, "_blank");
+      mostrarGrafico(GRAPH_CO_URL);
     });
 
-    // Abrir gráfico CP
     verCPBtn.addEventListener("click", () => {
-      if (!GRAPH_CP_URL) {
-        alert("Falta configurar la URL del gráfico CP.");
-        return;
-      }
-      window.open(GRAPH_CP_URL, "_blank");
+      mostrarGrafico(GRAPH_CP_URL);
     });
   </script>
 </body>
