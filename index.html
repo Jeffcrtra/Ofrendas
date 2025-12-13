@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>8.45 Ofrendas Analytics – Casa de Oración</title>
+  <title>9 Ofrendas Analytics – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Chart.js y plugin de data labels -->
@@ -1345,14 +1345,17 @@
         });
 
         try {
-          const res = await fetch(`${SCRIPT_URL}?mode=saveConfig`, {
+          const body = new URLSearchParams();
+          body.set("mode", "saveConfig");
+          body.set("iglesia", iglesia);
+          body.set("servicios", JSON.stringify(servicios));
+          
+          const res = await fetch(SCRIPT_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ iglesia, servicios }),
+            body
           });
-          if (!res.ok) {
-            throw new Error("HTTP " + res.status);
-          }
+          
+          if (!res.ok) throw new Error("HTTP " + res.status);
 
           configStatus.textContent = "✅ Configuración guardada.";
           configStatus.className = "status ok";
@@ -1448,4 +1451,5 @@
   </script>
 </body>
 </html>
+
 
