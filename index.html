@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>6.40 Ofrendas Analytics – Casa de Oración</title>
+  <title>8.00 Ofrendas Analytics – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Chart.js y plugin de data labels -->
@@ -11,7 +11,7 @@
 
   <style>
     :root {
-      --color-bg: #0f172a;           /* fondo oscuro tipo SaaS */
+      --color-bg: #0f172a;
       --color-bg-soft: #111827;
       --color-surface: #ffffff;
       --color-surface-soft: #f9fafb;
@@ -439,7 +439,7 @@
       gap: 0.3rem;
     }
 
-    /* CONTACTO */
+    /* CONTACTO + CONFIG */
 
     .contact-card {
       background: #ffffff;
@@ -459,18 +459,21 @@
       margin-bottom: 0.6rem;
       color: #4b5563;
     }
+
     .contact-links {
       margin-top: 0.4rem;
       display: flex;
       flex-direction: column;
       gap: 0.4rem;
     }
+
     .contact-links a {
       color: var(--color-primary);
       text-decoration: none;
       font-weight: 500;
       font-size: 0.9rem;
     }
+
     .contact-links a:hover {
       text-decoration: underline;
     }
@@ -507,11 +510,13 @@
     <!-- HEADER -->
     <header class="app-header">
       <div class="header-logo">
-        <img src="CasaDeOracionLogo.jpg" alt="Casa de Oración">
+        <img id="headerLogoImg" src="CasaDeOracionLogo.jpg" alt="Casa de Oración">
       </div>
       <div class="header-text-main">
         <div class="header-title">Ofrendas Analytics</div>
-        <div class="header-subtitle">Casa de Oración · Módulo de Ofrendas</div>
+        <div id="headerSubtitle" class="header-subtitle">
+          Casa de Oración · Módulo de Ofrendas
+        </div>
       </div>
     </header>
 
@@ -532,7 +537,7 @@
               <div class="home-card-icon">✍️</div>
               <div>
                 <div class="home-card-text-title">Ingresar Ofrenda</div>
-                <div class="home-card-text-sub">Registro rápido por culto, con notas opcionales.</div>
+                <div class="home-card-text-sub">Registro rápido por servicio, con notas opcionales.</div>
               </div>
             </div>
             <div class="home-card-chevron">›</div>
@@ -543,7 +548,7 @@
               <div class="home-card-icon">📈</div>
               <div>
                 <div class="home-card-text-title">Ver Análisis</div>
-                <div class="home-card-text-sub">Montos, asistencia y tendencia por tipo de culto.</div>
+                <div class="home-card-text-sub">Montos, asistencia y tendencia por servicio.</div>
               </div>
             </div>
             <div class="home-card-chevron">›</div>
@@ -575,26 +580,17 @@
         </div>
 
         <form id="ofrendaForm">
-          <div class="form-section-title">Datos del culto</div>
+          <div class="form-section-title">Datos del servicio</div>
 
-          <!-- Concepto -->
-          <label for="conceptoSelect">Concepto</label>
+          <!-- Servicio -->
+          <label for="conceptoSelect">Servicio</label>
           <select id="conceptoSelect" name="conceptoSelect" required>
-            <option value="" disabled selected>Seleccioná un concepto</option>
+            <option value="" disabled selected>Seleccioná un Servicio</option>
             <option value="Culto Principal">Culto Principal</option>
             <option value="Culto de Oración">Culto de Oración</option>
-            <option value="Otro">Otro</option>
+            <option value="Culto de Jóvenes">Culto de Jóvenes</option>
+            <option value="Otros">Otros</option>
           </select>
-
-          <div id="conceptoOtroContainer" style="display:none; margin-top:0.5rem;">
-            <label for="conceptoOtro">Especificar concepto</label>
-            <input
-              type="text"
-              id="conceptoOtro"
-              name="conceptoOtro"
-              placeholder="Ej: Actividad especial, misioneros..."
-            />
-          </div>
 
           <!-- Monto -->
           <label for="monto">Monto (₡)</label>
@@ -611,6 +607,7 @@
               pattern="[0-9]*"
             />
           </div>
+          <div id="montoPreview" style="margin-top:0.2rem;font-size:0.8rem;color:#6b7280;"></div>
 
           <!-- Asistencia -->
           <label for="asistencia">Asistencia</label>
@@ -638,6 +635,7 @@
 
           <button type="submit" class="btn-guardar">Guardar ofrenda</button>
           <div id="status" class="status"></div>
+          <div id="postSubmitActions" style="margin-top:0.5rem;font-size:0.85rem;display:none;"></div>
         </form>
       </section>
 
@@ -657,9 +655,11 @@
           <div class="graphs-row">
             <div class="input-small-label">Tipo de culto a visualizar</div>
             <select id="tipoGrafico">
-              <option value="" selected>Seleccioná un tipo de culto</option>
+              <option value="" selected>Seleccioná un servicio</option>
               <option value="CO">Culto de Oración (CO)</option>
               <option value="CP">Culto Principal (CP)</option>
+              <option value="CJ">Culto de Jóvenes (CJ)</option>
+              <option value="OT">Otros servicios (OT)</option>
             </select>
           </div>
 
@@ -694,28 +694,25 @@
           </button>
         </div>
 
-        <div class="contact-card">
-          <div class="contact-section-title">¿Tenés ideas para mejorar Ofrendas Analytics?</div>
+        <form id="contactForm" class="contact-card">
+          <div class="contact-section-title">Enviá tu mensaje</div>
           <div class="contact-text">
-            Podés proponer nuevas funciones, reportar algún problema o solicitar esta aplicación
-            para otra iglesia. Me interesa que esta herramienta sea realmente útil para la obra.
+            Podés proponer nuevas funciones, reportar algún problema o compartir ideas
+            para mejorar Ofrendas Analytics.
           </div>
 
-          <div class="contact-section-title">Canales de contacto</div>
-          <div class="contact-links">
-            <a href="https://www.linkedin.com/in/jeffrey-trigueros-371191123/"
-               target="_blank" rel="noopener noreferrer">
-              🔗 Perfil de LinkedIn de Jeffrey Trigueros
-            </a>
-            <a href="mailto:tu_correo@ejemplo.com">
-              ✉️ Enviar correo (sugerencias o soporte)
-            </a>
-            <!-- Podés cambiar esto a tu WhatsApp si querés -->
-            <!-- <a href="https://wa.me/506XXXXXXXXX" target="_blank" rel="noopener noreferrer">
-              💬 Contacto por WhatsApp
-            </a> -->
-          </div>
-        </div>
+          <label for="contactNombre">Nombre (opcional)</label>
+          <input id="contactNombre" type="text" placeholder="Tu nombre" />
+
+          <label for="contactEmail">Correo electrónico (opcional)</label>
+          <input id="contactEmail" type="email" placeholder="tu@correo.com" />
+
+          <label for="contactMensaje">Mensaje</label>
+          <textarea id="contactMensaje" placeholder="Escribí aquí tus comentarios"></textarea>
+
+          <button type="submit" class="btn-accion">Enviar por WhatsApp</button>
+          <div id="contactStatus" class="status"></div>
+        </form>
       </section>
     </main>
 
@@ -728,7 +725,10 @@
       </a>
       <br>
       <span style="font-size:0.78rem;">
-        ¿Querés esta aplicación para tu iglesia? Contáctame.
+        ¿Querés esta aplicación para tu iglesia?
+        <a href="https://wa.me/50660228322" target="_blank" rel="noopener noreferrer">
+          Contáctame por WhatsApp
+        </a>.
       </span>
     </footer>
   </div>
@@ -744,10 +744,24 @@
       const target = document.getElementById(screenId);
       if (target) {
         target.classList.add("active");
-        // Scroll al inicio de la app-main
         document.querySelector(".app-main").scrollTop = 0;
       }
     }
+
+    // Branding básico (nombre de iglesia y logo desde localStorage, si quisiéramos en futuro)
+    (function initBrandingFromStorage() {
+      const subtitleEl = document.getElementById('headerSubtitle');
+      const logoImg = document.getElementById('headerLogoImg');
+      const storedName = localStorage.getItem('ofrendas_iglesia');
+      const storedLogo = localStorage.getItem('ofrendas_logo');
+      const churchName = storedName && storedName.trim() ? storedName.trim() : 'Casa de Oración';
+      if (subtitleEl) {
+        subtitleEl.textContent = churchName + ' · Módulo de Ofrendas';
+      }
+      if (logoImg && storedLogo && storedLogo.trim()) {
+        logoImg.src = storedLogo.trim();
+      }
+    })();
 
     // Registrar plugin de datalabels en Chart.js
     Chart.register(ChartDataLabels);
@@ -758,11 +772,10 @@
     const form = document.getElementById("ofrendaForm");
     const statusEl = document.getElementById("status");
     const conceptoSelect = document.getElementById("conceptoSelect");
-    const conceptoOtroContainer = document.getElementById("conceptoOtroContainer");
-    const conceptoOtroInput = document.getElementById("conceptoOtro");
     const asistenciaInput = document.getElementById("asistencia");
     const tipoGraficoSelect = document.getElementById("tipoGrafico");
     const toggleSizeBtn = document.getElementById("toggleSizeBtn");
+    const postSubmitActions = document.getElementById("postSubmitActions");
 
     const graficoContainer = document.getElementById("graficoContainer");
     const graficoCanvas = document.getElementById("graficoCanvas");
@@ -772,17 +785,182 @@
     let graficoChart = null;
     let expanded = false;
 
+    // Contacto y sugerencias -> WhatsApp
+    const contactForm = document.getElementById("contactForm");
+    const contactStatus = document.getElementById("contactStatus");
+
+    if (contactForm && contactStatus) {
+      contactForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const nombre = (document.getElementById("contactNombre").value || "").trim();
+        const email = (document.getElementById("contactEmail").value || "").trim();
+        const mensaje = (document.getElementById("contactMensaje").value || "").trim();
+
+        if (!mensaje) {
+          contactStatus.textContent = "⚠️ Escribí un mensaje antes de enviar.";
+          contactStatus.className = "status error";
+          return;
+        }
+
+        contactStatus.textContent = "Abriendo WhatsApp...";
+        contactStatus.className = "status ok";
+
+        let texto = "Contacto desde Ofrendas Analytics:%0A";
+        if (nombre) texto += "Nombre: " + encodeURIComponent(nombre) + "%0A";
+        if (email) texto += "Email: " + encodeURIComponent(email) + "%0A";
+        texto += "%0AMensaje:%0A" + encodeURIComponent(mensaje);
+
+        const url = "https://wa.me/50660228322?text=" + texto;
+        window.open(url, "_blank");
+      });
+    }
+
+    // Vista previa formateada del monto
+    const montoInput = document.getElementById("monto");
+    const montoPreview = document.getElementById("montoPreview");
+
+    if (montoInput && montoPreview) {
+      montoInput.addEventListener("input", () => {
+        const raw = montoInput.value;
+        const num = parseInt(raw, 10);
+        if (isNaN(num)) {
+          montoPreview.textContent = "";
+          return;
+        }
+        // Formato con separador de miles
+        montoPreview.textContent =
+          "Monto formateado: " + num.toLocaleString("es-CR");
+      });
+    }
+
+    // Envío del formulario (registrar ofrenda)
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      statusEl.textContent = "Enviando...";
+      statusEl.className = "status";
+      if (postSubmitActions) {
+        postSubmitActions.style.display = "none";
+        postSubmitActions.innerHTML = "";
+      }
+
+      const montoRaw = document.getElementById("monto").value;
+      const monto = parseInt(montoRaw, 10);
+
+      const conceptoSelectValue = conceptoSelect.value;
+      const asistenciaRaw = asistenciaInput.value;
+      const asistencia = asistenciaRaw ? parseInt(asistenciaRaw, 10) : "";
+      const notas = document.getElementById("notas").value;
+
+      if (isNaN(monto)) {
+        statusEl.textContent = "⚠️ El monto debe ser un número entero.";
+        statusEl.className = "status error";
+        return;
+      }
+
+      if (!conceptoSelectValue) {
+        statusEl.textContent = "⚠️ Seleccioná un Servicio.";
+        statusEl.className = "status error";
+        return;
+      }
+
+      const conceptoFinal = conceptoSelectValue;
+
+      const params = new URLSearchParams({
+        monto: String(monto),
+        concepto: conceptoFinal,
+        asistencia: asistencia,
+        notas: notas,
+      });
+
+      try {
+        await fetch(`${SCRIPT_URL}?${params.toString()}`, {
+          method: "GET",
+          mode: "no-cors",
+        });
+
+        statusEl.textContent = "✅ Ofrenda registrada.";
+        statusEl.className = "status ok";
+        form.reset();
+        if (montoPreview) montoPreview.textContent = "";
+
+        // Si ya hay un tipo de gráfico seleccionado, refrescarlo
+        const tipoActual = tipoGraficoSelect.value;
+        if (tipoActual === "CO" || tipoActual === "CP" || tipoActual === "CJ" || tipoActual === "OT") {
+          cargarYMostrarGrafico(tipoActual);
+        }
+
+        // Preguntar qué desea hacer después
+        if (postSubmitActions) {
+          postSubmitActions.style.display = "block";
+          postSubmitActions.innerHTML = `
+            ¿Qué deseás hacer ahora?<br>
+            <button type="button" class="btn-accion"
+              style="margin-top:0.4rem;width:auto;padding:0.45rem 0.9rem;margin-right:0.3rem;"
+              onclick="otraOfrenda()">
+              Ingresar otra
+            </button>
+            <button type="button" class="btn-accion"
+              style="margin-top:0.4rem;width:auto;padding:0.45rem 0.9rem;"
+              onclick="irAAnalisis()">
+              Ir a análisis
+            </button>
+          `;
+        }
+      } catch (err) {
+        statusEl.textContent = "❌ Error de conexión: " + err.toString();
+        statusEl.className = "status error";
+      }
+    });
+
+    function otraOfrenda() {
+      const form = document.getElementById("ofrendaForm");
+      if (form) form.reset();
+      if (statusEl) {
+        statusEl.textContent = "";
+        statusEl.className = "status";
+      }
+      if (montoPreview) montoPreview.textContent = "";
+      if (postSubmitActions) {
+        postSubmitActions.style.display = "none";
+        postSubmitActions.innerHTML = "";
+      }
+      const montoInput = document.getElementById("monto");
+      if (montoInput) montoInput.focus();
+    }
+
+    function irAAnalisis() {
+      if (postSubmitActions) {
+        postSubmitActions.style.display = "none";
+        postSubmitActions.innerHTML = "";
+      }
+      if (statusEl) {
+        statusEl.textContent = "";
+        statusEl.className = "status";
+      }
+      navigateTo("screen-analisis");
+    }
+
     // Config de colores por tipo de culto
     const configPorTipo = {
       CO: {
         label: "Culto de Oración",
-        areaColor: "rgba(25, 118, 210, 0.35)",   // azul suave
-        borderColor: "rgba(25, 118, 210, 1)",    // azul fuerte
+        areaColor: "rgba(25, 118, 210, 0.35)",
+        borderColor: "rgba(25, 118, 210, 1)",
       },
       CP: {
         label: "Culto Principal",
-        areaColor: "rgba(239, 108, 0, 0.35)",    // naranja suave
-        borderColor: "rgba(239, 108, 0, 1)",     // naranja fuerte
+        areaColor: "rgba(239, 108, 0, 0.35)",
+        borderColor: "rgba(239, 108, 0, 1)",
+      },
+      CJ: {
+        label: "Culto de Jóvenes",
+        areaColor: "rgba(76, 175, 80, 0.25)",
+        borderColor: "rgba(56, 142, 60, 1)",
+      },
+      OT: {
+        label: "Otros servicios",
+        areaColor: "rgba(156, 163, 175, 0.3)",
+        borderColor: "rgba(107, 114, 128, 1)",
       },
     };
 
@@ -800,87 +978,6 @@
       return String(raw);
     }
 
-    // Mostrar/ocultar campo "Otro"
-    conceptoSelect.addEventListener("change", () => {
-      if (conceptoSelect.value === "Otro") {
-        conceptoOtroContainer.style.display = "block";
-        conceptoOtroContainer.style.opacity = "1";
-      } else {
-        conceptoOtroContainer.style.display = "none";
-        conceptoOtroInput.value = "";
-      }
-    });
-
-    // Envío del formulario (registrar ofrenda)
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      statusEl.textContent = "Enviando...";
-      statusEl.className = "status";
-
-      const montoRaw = document.getElementById("monto").value;
-      const monto = parseInt(montoRaw, 10);
-
-      const conceptoSelectValue = conceptoSelect.value;
-      const conceptoOtroValue = conceptoOtroInput.value.trim();
-
-      const asistenciaRaw = asistenciaInput.value;
-      const asistencia = asistenciaRaw ? parseInt(asistenciaRaw, 10) : "";
-
-      const notas = document.getElementById("notas").value;
-
-      if (isNaN(monto)) {
-        statusEl.textContent = "⚠️ El monto debe ser un número entero.";
-        statusEl.className = "status error";
-        return;
-      }
-
-      if (!conceptoSelectValue) {
-        statusEl.textContent = "⚠️ Debés seleccionar un concepto.";
-        statusEl.className = "status error";
-        return;
-      }
-
-      let conceptoFinal = conceptoSelectValue;
-      if (conceptoSelectValue === "Otro") {
-        if (!conceptoOtroValue) {
-          statusEl.textContent =
-            "⚠️ Especificá el concepto cuando elijas 'Otro'.";
-          statusEl.className = "status error";
-          return;
-        }
-        conceptoFinal = conceptoOtroValue;
-      }
-
-      const params = new URLSearchParams({
-        monto: String(monto),
-        concepto: conceptoFinal,
-        asistencia: asistencia,
-        notas: notas,
-      });
-
-      try {
-        // Registrar ofrenda (no necesitamos leer respuesta)
-        await fetch(`${SCRIPT_URL}?${params.toString()}`, {
-          method: "GET",
-          mode: "no-cors",
-        });
-
-        statusEl.textContent = "✅ Ofrenda registrada.";
-        statusEl.className = "status ok";
-        form.reset();
-        conceptoOtroContainer.style.display = "none";
-
-        // Si ya hay un tipo de gráfico seleccionado, refrescarlo
-        const tipoActual = tipoGraficoSelect.value;
-        if (tipoActual === "CO" || tipoActual === "CP") {
-          cargarYMostrarGrafico(tipoActual);
-        }
-      } catch (err) {
-        statusEl.textContent = "❌ Error de conexión: " + err.toString();
-        statusEl.className = "status error";
-      }
-    });
-
     // Cargar pivot desde Apps Script y dibujar gráfico
     async function cargarYMostrarGrafico(tipo) {
       if (!tipo) {
@@ -891,7 +988,6 @@
       try {
         const cfg = configPorTipo[tipo] || configPorTipo.CO;
 
-        // Mostrar contenedor y mensaje de cargando
         graficoContainer.style.display = "block";
         resumenTexto.textContent = "Cargando gráfico...";
         customLegendEl.textContent = "";
@@ -907,7 +1003,6 @@
         const data = await res.json();
         let rows = data.rows || [];
 
-        // Filtrar filas vacías (asumimos: 0=fecha, 1=monto, 2=asistencia)
         rows = rows.filter(
           (r) => r && r[0] !== "" && r[1] !== "" && r[1] != null
         );
@@ -925,7 +1020,6 @@
           r.length > 2 ? Number(r[2]) || 0 : 0
         );
 
-        // Destruir gráfico previo si existe
         if (graficoChart) {
           graficoChart.destroy();
         }
@@ -943,8 +1037,8 @@
                 borderColor: cfg.borderColor,
                 backgroundColor: cfg.areaColor,
                 borderWidth: 2,
-                fill: true,              // área
-                stepped: "middle",       // área escalonada
+                fill: true,
+                stepped: "middle",
                 yAxisID: "y",
                 tension: 0,
                 datalabels: {
@@ -989,7 +1083,7 @@
                 clip: true,
               },
               legend: {
-                display: false, // usamos leyenda personalizada
+                display: false,
               },
               title: {
                 display: true,
@@ -1020,7 +1114,6 @@
           },
         });
 
-        // Leyenda personalizada
         customLegendEl.innerHTML = `
           <div style="margin-bottom:4px;">
             <span style="display:inline-block;width:14px;height:10px;background:${cfg.areaColor};border:2px solid ${cfg.borderColor};border-radius:2px;margin-right:4px;"></span>
@@ -1032,7 +1125,6 @@
           </div>
         `;
 
-        // Texto de análisis: 3 líneas (promedio, asistencia, tendencia)
         const sumMonto = valoresMonto.reduce((a, b) => a + b, 0);
         const avgMonto = sumMonto / valoresMonto.length;
 
@@ -1054,7 +1146,7 @@
         });
 
         const lineaPromedio =
-          `Promedio de ofrendas por culto: ${formatterCRC.format(
+          `Promedio de ofrendas por servicio: ${formatterCRC.format(
             avgMonto || 0
           )}.`;
         const lineaAsistencia = validAsist.length
