@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>6.03 Registro de Ofrendas – Casa de Oración</title>
+  <title>6.11 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Chart.js y plugin de data labels -->
@@ -252,17 +252,7 @@
     </button>
   </div>
 
-  <!-- Contenedor del gráfico en HTML -->
-  <div id="graficoContainer">
-    <canvas id="graficoCanvas"></canvas>
-    <div id="customLegend"></div>
-
-    <div id="resumenBox">
-      <div id="resumenTexto"></div>
-    </div>
-  </div> <!-- cierre de graficoContainer -->
-
-  <!-- Footer SIEMPRE visible -->
+  <!-- Footer SIEMPRE visible (debajo de controles, antes del gráfico) -->
   <div id="appFooter">
     © <span id="footerYear"></span> Ofrendas Analytics · Creado por 
     <a href="https://www.linkedin.com/in/jeffrey-trigueros-371191123/"
@@ -274,6 +264,16 @@
       ¿Querés esta aplicación para tu iglesia? Contáctame.
     </span>
   </div>
+
+  <!-- Contenedor del gráfico en HTML (se muestra solo al elegir CO/CP) -->
+  <div id="graficoContainer">
+    <canvas id="graficoCanvas"></canvas>
+    <div id="customLegend"></div>
+
+    <div id="resumenBox">
+      <div id="resumenTexto"></div>
+    </div>
+  </div> <!-- cierre de graficoContainer -->
 
   <script>
     // Año dinámico en el footer
