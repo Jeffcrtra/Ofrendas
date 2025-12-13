@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>6.11 Registro de Ofrendas – Casa de Oración</title>
+  <title>6.40 Ofrendas Analytics – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Chart.js y plugin de data labels -->
@@ -10,94 +10,354 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
   <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 1.5rem;
-      background: #f5f5f5;
-      transition: max-width 0.3s ease, padding 0.3s ease;
-    }
-    /* Cuando el gráfico está ampliado, el layout se ensancha */
-    body.expanded-layout {
-      max-width: 100%;
-      padding: 0.8rem;
+    :root {
+      --color-bg: #0f172a;           /* fondo oscuro tipo SaaS */
+      --color-bg-soft: #111827;
+      --color-surface: #ffffff;
+      --color-surface-soft: #f9fafb;
+      --color-primary: #1e88e5;
+      --color-primary-soft: rgba(30, 136, 229, 0.1);
+      --color-accent: #f57c00;
+      --color-success: #4caf50;
+      --color-border: #e5e7eb;
+      --color-text-main: #111827;
+      --color-text-soft: #6b7280;
+      --color-footer: #9ca3af;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.18);
+      --shadow-subtle: 0 4px 10px rgba(15, 23, 42, 0.12);
     }
 
-    h1 {
-      font-size: 1.4rem;
-      text-align: center;
-      margin: 0.5rem 0 1rem 0;
+    * {
+      box-sizing: border-box;
     }
-    .logo {
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+      color: var(--color-text-main);
       display: flex;
       justify-content: center;
-      margin-bottom: 0.5rem;
+      padding: 1.5rem 0.75rem;
     }
-    .logo img {
-      max-width: 180px;
-      height: auto;
+
+    .app-shell {
+      width: 100%;
+      max-width: 560px;
+      min-height: 90vh;
+      background: linear-gradient(180deg, #f9fafb 0, #ffffff 40%, #f9fafb 100%);
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .app-header {
+      padding: 1rem 1.5rem 0.75rem;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: linear-gradient(135deg, #ffffff 0, #e5f2ff 45%, #fff7ed 100%);
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.16);
+      flex-shrink: 0;
+    }
+
+    .header-logo img {
+      max-width: 32px;
+      max-height: 32px;
       border-radius: 8px;
+      object-fit: contain;
     }
+
+    .header-text-main {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .header-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: 0.01em;
+      color: #0f172a;
+    }
+
+    .header-subtitle {
+      font-size: 0.82rem;
+      color: #4b5563;
+    }
+
+    .app-main {
+      flex: 1;
+      padding: 1.2rem 1.5rem 1rem;
+      overflow-y: auto;
+      background: transparent;
+    }
+
+    .screen {
+      display: none;
+      animation: fadeIn 0.22s ease-out;
+    }
+    .screen.active {
+      display: block;
+    }
+
+    .screen-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.9rem;
+    }
+    .screen-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: #111827;
+    }
+    .screen-title span.emoji {
+      font-size: 1.2rem;
+    }
+
+    .back-btn {
+      border: none;
+      background: transparent;
+      color: var(--color-primary);
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      cursor: pointer;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+    .back-btn:hover {
+      background: rgba(30, 136, 229, 0.1);
+    }
+    .back-btn:active {
+      transform: translateY(1px);
+    }
+
+    /* HOME */
+
+    .home-intro {
+      margin-bottom: 1.2rem;
+    }
+    .home-intro-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 0.3rem;
+    }
+    .home-intro-text {
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+
+    .home-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-top: 1rem;
+    }
+
+    .home-card {
+      border-radius: var(--radius-lg);
+      padding: 0.85rem 1rem;
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+    }
+
+    .home-card-main {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .home-card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .home-card-text-title {
+      font-size: 0.98rem;
+      font-weight: 600;
+      color: #111827;
+    }
+    .home-card-text-sub {
+      font-size: 0.83rem;
+      color: #6b7280;
+    }
+
+    .home-card-chevron {
+      font-size: 1rem;
+      color: #9ca3af;
+    }
+
+    .home-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16);
+      border-color: rgba(30, 136, 229, 0.45);
+      background: #f9fafb;
+    }
+    .home-card:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .home-card-primary .home-card-icon {
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+    }
+    .home-card-analytics .home-card-icon {
+      background: rgba(245, 124, 0, 0.08);
+      color: var(--color-accent);
+    }
+    .home-card-contact .home-card-icon {
+      background: rgba(16, 185, 129, 0.08);
+      color: #059669;
+    }
+
+    /* FORMULARIO INGRESO */
+
     form {
       background: #ffffff;
-      padding: 1rem 1.2rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      padding: 1rem 1.1rem 1.2rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-subtle);
+      border: 1px solid var(--color-border);
     }
+
+    .form-section-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 0.4rem;
+    }
+
     label {
       display: block;
-      font-size: 0.9rem;
-      margin-top: 0.8rem;
-      margin-bottom: 0.2rem;
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+      margin-bottom: 0.18rem;
+      color: #4b5563;
     }
+
+    .field-wrapper {
+      position: relative;
+    }
+
+    .field-icon {
+      position: absolute;
+      left: 0.55rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.9rem;
+      color: #9ca3af;
+      pointer-events: none;
+    }
+
     input, textarea, select, button {
       width: 100%;
       box-sizing: border-box;
-      font-size: 1rem;
+      font-size: 0.95rem;
+      font-family: inherit;
     }
+
     input, textarea, select {
-      padding: 0.5rem 0.6rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      padding: 0.55rem 0.7rem;
+      border-radius: 9px;
+      border: 1px solid #d1d5db;
       outline: none;
-      background: #fff;
+      background: #ffffff;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
     }
+
+    .field-with-icon input {
+      padding-left: 1.8rem;
+    }
+
     input:focus, textarea:focus, select:focus {
-      border-color: #4a90e2;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 1px rgba(30, 136, 229, 0.2);
+      background: #f9fcff;
     }
+
     textarea {
       min-height: 80px;
       resize: vertical;
     }
+
     button {
       margin-top: 1rem;
-      padding: 0.6rem;
+      padding: 0.7rem;
       border-radius: 999px;
       border: none;
       cursor: pointer;
       font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: background 0.16s ease, transform 0.12s ease, box-shadow 0.16s ease;
     }
+
     button:active {
-      transform: translateY(1px);
+      transform: translateY(1px) scale(0.99);
     }
+
     .btn-guardar {
-      background: #4caf50;
-      color: #fff;
+      background: var(--color-success);
+      color: #ffffff;
+      box-shadow: 0 8px 18px rgba(34, 197, 94, 0.35);
     }
+    .btn-guardar:hover {
+      background: #43a047;
+    }
+
     .btn-accion {
-      background: #1976d2;
-      color: #fff;
+      background: var(--color-primary);
+      color: #ffffff;
+      box-shadow: 0 8px 18px rgba(30, 136, 229, 0.35);
     }
+    .btn-accion:hover {
+      background: #1976d2;
+    }
+
     .status {
-      margin-top: 0.8rem;
-      font-size: 0.9rem;
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
     }
     .status.ok {
-      color: #2e7d32;
+      color: #15803d;
     }
     .status.error {
-      color: #c62828;
+      color: #b91c1c;
     }
 
     /* Quitar flechas de los inputs numéricos */
@@ -110,30 +370,45 @@
       -moz-appearance: textfield;
     }
 
+    /* ANALISIS */
+
     .graphs-container {
-      margin-top: 1rem;
+      margin-bottom: 0.9rem;
+      background: #ffffff;
+      padding: 0.9rem 1.1rem 1rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-subtle);
+      border: 1px solid var(--color-border);
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
-      background: #ffffff;
-      padding: 0.8rem 1rem 1rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      gap: 0.7rem;
+    }
+
+    .graphs-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .input-small-label {
+      font-size: 0.83rem;
+      color: #4b5563;
     }
 
     #graficoContainer {
-      margin-top: 1rem;
+      margin-top: 0.6rem;
       width: 100%;
       height: 360px;
       display: none;
       background: #ffffff;
-      border-radius: 12px;
-      padding: 0.5rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      border-radius: var(--radius-lg);
+      padding: 0.75rem 0.75rem 0.9rem;
+      box-shadow: var(--shadow-subtle);
+      border: 1px solid var(--color-border);
       transition: height 0.3s ease;
     }
     #graficoContainer.expanded-chart {
-      height: 75vh; /* modo grande, y el body ya es ancho */
+      height: 70vh;
     }
 
     #graficoCanvas {
@@ -142,142 +417,337 @@
     }
 
     #customLegend {
-      margin-top: 0.8rem;  /* más espacio bajo el gráfico */
-      font-size: 0.85rem;
+      margin-top: 0.7rem;
+      font-size: 0.8rem;
+      color: #4b5563;
     }
 
     #resumenBox {
       margin-top: 0.7rem;
       padding: 0.6rem 0.8rem;
-      border-radius: 8px;
-      background: #e3f2fd; /* azul clarito */
-      font-size: 0.9rem;
+      border-radius: 10px;
+      background: #e3f2fd;
+      font-size: 0.85rem;
+      color: #0f172a;
     }
 
-    #appFooter {
-      margin-top: 2rem;
-      padding: 1rem 0;
-      text-align: center;
-      font-size: 0.85rem;
-      color: #555;
-      border-top: 1px solid #ccc;
-      opacity: 0.9;
+    #resumenBox-title {
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
     }
+
+    /* CONTACTO */
+
+    .contact-card {
+      background: #ffffff;
+      padding: 1rem 1.1rem 1.2rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-subtle);
+      border: 1px solid var(--color-border);
+      font-size: 0.9rem;
+      color: #374151;
+    }
+
+    .contact-section-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .contact-text {
+      margin-bottom: 0.6rem;
+      color: #4b5563;
+    }
+    .contact-links {
+      margin-top: 0.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .contact-links a {
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    .contact-links a:hover {
+      text-decoration: underline;
+    }
+
+    /* FOOTER */
+
+    #appFooter {
+      padding: 0.7rem 1.5rem 0.9rem;
+      border-top: 1px solid var(--color-border);
+      font-size: 0.8rem;
+      color: var(--color-footer);
+      background: #f9fafb;
+    }
+
     #appFooter a {
-      color: #1565c0;
+      color: var(--color-primary);
       text-decoration: none;
       font-weight: 500;
     }
     #appFooter a:hover {
       text-decoration: underline;
     }
+
+    /* ANIMACIONES */
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
-  <div class="logo">
-    <img src="CasaDeOracionLogo.jpg" alt="Casa de Oración">
+  <div class="app-shell">
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="header-logo">
+        <img src="CasaDeOracionLogo.jpg" alt="Casa de Oración">
+      </div>
+      <div class="header-text-main">
+        <div class="header-title">Ofrendas Analytics</div>
+        <div class="header-subtitle">Casa de Oración · Módulo de Ofrendas</div>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="app-main">
+      <!-- SCREEN: HOME -->
+      <section id="screen-home" class="screen active">
+        <div class="home-intro">
+          <div class="home-intro-title">¿Qué deseás hacer hoy?</div>
+          <div class="home-intro-text">
+            Registrá las ofrendas del culto o revisá el análisis histórico de montos y asistencia.
+          </div>
+        </div>
+
+        <div class="home-actions">
+          <div class="home-card home-card-primary" onclick="navigateTo('screen-ingreso')">
+            <div class="home-card-main">
+              <div class="home-card-icon">✍️</div>
+              <div>
+                <div class="home-card-text-title">Ingresar Ofrenda</div>
+                <div class="home-card-text-sub">Registro rápido por culto, con notas opcionales.</div>
+              </div>
+            </div>
+            <div class="home-card-chevron">›</div>
+          </div>
+
+          <div class="home-card home-card-analytics" onclick="navigateTo('screen-analisis')">
+            <div class="home-card-main">
+              <div class="home-card-icon">📈</div>
+              <div>
+                <div class="home-card-text-title">Ver Análisis</div>
+                <div class="home-card-text-sub">Montos, asistencia y tendencia por tipo de culto.</div>
+              </div>
+            </div>
+            <div class="home-card-chevron">›</div>
+          </div>
+
+          <div class="home-card home-card-contact" onclick="navigateTo('screen-contacto')">
+            <div class="home-card-main">
+              <div class="home-card-icon">💬</div>
+              <div>
+                <div class="home-card-text-title">Contacto y sugerencias</div>
+                <div class="home-card-text-sub">Comentá mejoras, dudas o ideas futuras.</div>
+              </div>
+            </div>
+            <div class="home-card-chevron">›</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN: INGRESO -->
+      <section id="screen-ingreso" class="screen">
+        <div class="screen-title-row">
+          <div class="screen-title">
+            <span class="emoji">✍️</span>
+            <span>Ingresar Ofrenda</span>
+          </div>
+          <button type="button" class="back-btn" onclick="navigateTo('screen-home')">
+            ← Inicio
+          </button>
+        </div>
+
+        <form id="ofrendaForm">
+          <div class="form-section-title">Datos del culto</div>
+
+          <!-- Concepto -->
+          <label for="conceptoSelect">Concepto</label>
+          <select id="conceptoSelect" name="conceptoSelect" required>
+            <option value="" disabled selected>Seleccioná un concepto</option>
+            <option value="Culto Principal">Culto Principal</option>
+            <option value="Culto de Oración">Culto de Oración</option>
+            <option value="Otro">Otro</option>
+          </select>
+
+          <div id="conceptoOtroContainer" style="display:none; margin-top:0.5rem;">
+            <label for="conceptoOtro">Especificar concepto</label>
+            <input
+              type="text"
+              id="conceptoOtro"
+              name="conceptoOtro"
+              placeholder="Ej: Actividad especial, misioneros..."
+            />
+          </div>
+
+          <!-- Monto -->
+          <label for="monto">Monto (₡)</label>
+          <div class="field-wrapper field-with-icon">
+            <span class="field-icon">₡</span>
+            <input
+              type="number"
+              id="monto"
+              name="monto"
+              required
+              min="0"
+              step="1"
+              inputmode="numeric"
+              pattern="[0-9]*"
+            />
+          </div>
+
+          <!-- Asistencia -->
+          <label for="asistencia">Asistencia</label>
+          <div class="field-wrapper field-with-icon">
+            <span class="field-icon">👥</span>
+            <input
+              type="number"
+              id="asistencia"
+              name="asistencia"
+              min="0"
+              step="1"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              placeholder="Cantidad de personas"
+            />
+          </div>
+
+          <!-- Notas -->
+          <label for="notas">Notas</label>
+          <textarea
+            id="notas"
+            name="notas"
+            placeholder="Detalles adicionales (opcional)"
+          ></textarea>
+
+          <button type="submit" class="btn-guardar">Guardar ofrenda</button>
+          <div id="status" class="status"></div>
+        </form>
+      </section>
+
+      <!-- SCREEN: ANALISIS -->
+      <section id="screen-analisis" class="screen">
+        <div class="screen-title-row">
+          <div class="screen-title">
+            <span class="emoji">📈</span>
+            <span>Ver análisis</span>
+          </div>
+          <button type="button" class="back-btn" onclick="navigateTo('screen-home')">
+            ← Inicio
+          </button>
+        </div>
+
+        <div class="graphs-container">
+          <div class="graphs-row">
+            <div class="input-small-label">Tipo de culto a visualizar</div>
+            <select id="tipoGrafico">
+              <option value="" selected>Seleccioná un tipo de culto</option>
+              <option value="CO">Culto de Oración (CO)</option>
+              <option value="CP">Culto Principal (CP)</option>
+            </select>
+          </div>
+
+          <button id="toggleSizeBtn" type="button" class="btn-accion">
+            Ampliar gráfico
+          </button>
+        </div>
+
+        <!-- Contenedor del gráfico y resumen -->
+        <div id="graficoContainer">
+          <canvas id="graficoCanvas"></canvas>
+          <div id="customLegend"></div>
+
+          <div id="resumenBox">
+            <div id="resumenBox-title">
+              <span>📊 Resumen analítico</span>
+            </div>
+            <div id="resumenTexto"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN: CONTACTO -->
+      <section id="screen-contacto" class="screen">
+        <div class="screen-title-row">
+          <div class="screen-title">
+            <span class="emoji">💬</span>
+            <span>Contacto y sugerencias</span>
+          </div>
+          <button type="button" class="back-btn" onclick="navigateTo('screen-home')">
+            ← Inicio
+          </button>
+        </div>
+
+        <div class="contact-card">
+          <div class="contact-section-title">¿Tenés ideas para mejorar Ofrendas Analytics?</div>
+          <div class="contact-text">
+            Podés proponer nuevas funciones, reportar algún problema o solicitar esta aplicación
+            para otra iglesia. Me interesa que esta herramienta sea realmente útil para la obra.
+          </div>
+
+          <div class="contact-section-title">Canales de contacto</div>
+          <div class="contact-links">
+            <a href="https://www.linkedin.com/in/jeffrey-trigueros-371191123/"
+               target="_blank" rel="noopener noreferrer">
+              🔗 Perfil de LinkedIn de Jeffrey Trigueros
+            </a>
+            <a href="mailto:tu_correo@ejemplo.com">
+              ✉️ Enviar correo (sugerencias o soporte)
+            </a>
+            <!-- Podés cambiar esto a tu WhatsApp si querés -->
+            <!-- <a href="https://wa.me/506XXXXXXXXX" target="_blank" rel="noopener noreferrer">
+              💬 Contacto por WhatsApp
+            </a> -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer id="appFooter">
+      © <span id="footerYear"></span> Ofrendas Analytics · Creado por
+      <a href="https://www.linkedin.com/in/jeffrey-trigueros-371191123/"
+         target="_blank" rel="noopener noreferrer">
+        Jeffrey Trigueros
+      </a>
+      <br>
+      <span style="font-size:0.78rem;">
+        ¿Querés esta aplicación para tu iglesia? Contáctame.
+      </span>
+    </footer>
   </div>
-
-  <h1>Registro de Ofrendas</h1>
-
-  <form id="ofrendaForm">
-    <!-- Concepto -->
-    <label for="conceptoSelect">Concepto</label>
-    <select id="conceptoSelect" name="conceptoSelect" required>
-      <option value="" disabled selected>Seleccioná un concepto</option>
-      <option value="Culto Principal">Culto Principal</option>
-      <option value="Culto de Oración">Culto de Oración</option>
-      <option value="Otro">Otro</option>
-    </select>
-
-    <div id="conceptoOtroContainer" style="display:none; margin-top:0.5rem;">
-      <label for="conceptoOtro">Especificar concepto</label>
-      <input
-        type="text"
-        id="conceptoOtro"
-        name="conceptoOtro"
-        placeholder="Ej: Actividad especial, misioneros..."
-      />
-    </div>
-
-    <!-- Monto -->
-    <label for="monto">Monto (₡)</label>
-    <input
-      type="number"
-      id="monto"
-      name="monto"
-      required
-      min="0"
-      step="1"
-      inputmode="numeric"
-      pattern="[0-9]*"
-    />
-
-    <!-- Asistencia -->
-    <label for="asistencia">Asistencia</label>
-    <input
-      type="number"
-      id="asistencia"
-      name="asistencia"
-      min="0"
-      step="1"
-      inputmode="numeric"
-      pattern="[0-9]*"
-      placeholder="Cantidad de personas"
-    />
-
-    <!-- Notas -->
-    <label for="notas">Notas</label>
-    <textarea
-      id="notas"
-      name="notas"
-      placeholder="Detalles adicionales (opcional)"
-    ></textarea>
-
-    <button type="submit" class="btn-guardar">Guardar</button>
-    <div id="status" class="status"></div>
-  </form>
-
-  <!-- Controles de gráfico -->
-  <div class="graphs-container">
-    <label for="tipoGrafico">Tipo de culto a visualizar</label>
-    <select id="tipoGrafico">
-      <option value="" selected>Seleccioná un tipo de culto</option>
-      <option value="CO">Culto de Oración (CO)</option>
-      <option value="CP">Culto Principal (CP)</option>
-    </select>
-
-    <button id="toggleSizeBtn" type="button" class="btn-accion">
-      Ampliar gráfico
-    </button>
-  </div>
-
-  <!-- Footer SIEMPRE visible (debajo de controles, antes del gráfico) -->
-  <div id="appFooter">
-    © <span id="footerYear"></span> Ofrendas Analytics · Creado por 
-    <a href="https://www.linkedin.com/in/jeffrey-trigueros-371191123/"
-       target="_blank" rel="noopener noreferrer">
-       Jeffrey Trigueros
-    </a>
-    <br>
-    <span style="font-size:0.8rem;">
-      ¿Querés esta aplicación para tu iglesia? Contáctame.
-    </span>
-  </div>
-
-  <!-- Contenedor del gráfico en HTML (se muestra solo al elegir CO/CP) -->
-  <div id="graficoContainer">
-    <canvas id="graficoCanvas"></canvas>
-    <div id="customLegend"></div>
-
-    <div id="resumenBox">
-      <div id="resumenTexto"></div>
-    </div>
-  </div> <!-- cierre de graficoContainer -->
 
   <script>
     // Año dinámico en el footer
     document.getElementById("footerYear").textContent = new Date().getFullYear();
+
+    // Navegación entre "pantallas"
+    function navigateTo(screenId) {
+      const screens = document.querySelectorAll(".screen");
+      screens.forEach(s => s.classList.remove("active"));
+      const target = document.getElementById(screenId);
+      if (target) {
+        target.classList.add("active");
+        // Scroll al inicio de la app-main
+        document.querySelector(".app-main").scrollTop = 0;
+      }
+    }
 
     // Registrar plugin de datalabels en Chart.js
     Chart.register(ChartDataLabels);
@@ -300,6 +770,7 @@
     const customLegendEl = document.getElementById("customLegend");
 
     let graficoChart = null;
+    let expanded = false;
 
     // Config de colores por tipo de culto
     const configPorTipo = {
@@ -333,6 +804,7 @@
     conceptoSelect.addEventListener("change", () => {
       if (conceptoSelect.value === "Otro") {
         conceptoOtroContainer.style.display = "block";
+        conceptoOtroContainer.style.opacity = "1";
       } else {
         conceptoOtroContainer.style.display = "none";
         conceptoOtroInput.value = "";
@@ -509,7 +981,7 @@
             maintainAspectRatio: false,
             plugins: {
               datalabels: {
-                color: "#222",
+                color: "#111827",
                 font: {
                   size: 9,
                 },
@@ -609,7 +1081,6 @@
     });
 
     // Botón para ampliar / reducir gráfico (alto + ancho)
-    let expanded = false;
     toggleSizeBtn.addEventListener("click", () => {
       expanded = !expanded;
       if (expanded) {
