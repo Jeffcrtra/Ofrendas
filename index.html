@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>2.05 Ofrendas Analytics – Casa de Oración</title>
+  <title>2.38 Ofrendas Analytics – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Chart.js y plugin de data labels -->
@@ -816,6 +816,16 @@
 
           <button type="submit" class="btn-accion">Guardar configuración</button>
           <div id="configStatus" class="status"></div>
+
+          <label for="cfgLogo">Logo (imagen)</label>
+          <input id="cfgLogo" type="file" accept="image/*" />
+          <div style="font-size:0.8rem;color:#6b7280;margin-top:0.25rem;">
+            Recomendado: PNG/JPG pequeño (ideal &lt; 300 KB).
+          </div>
+          <button type="button" id="btnUploadLogo" class="btn-secondary" style="margin-top:0.6rem;">
+            Subir logo
+          </button>
+
         </form>
       </section>
     </main>
@@ -839,7 +849,7 @@
 
   <script>
     const SCRIPT_URL =
-      "https://script.google.com/macros/s/AKfycbxjvU0r_CW0pRrNXNJ8nV_dkg1xnr8pXnUst0zcxgTq6oPx2WuhYQwO3DbIdaV5_vbFIA/exec";
+      "https://script.google.com/macros/s/AKfycbxcqE5hyoc6_goU7t-zm3JsnrSaiDxz3qSRciDAnnev-x9Rut0htTZcrxp6_qHJd2wSug/exec";
 
     // Año dinámico en el footer
     document.getElementById("footerYear").textContent = new Date().getFullYear();
@@ -1285,6 +1295,68 @@
     //========================
     // CONFIGURACIÓN (sheet Config)
     //========================
+
+    const cfgLogoInput = document.getElementById("cfgLogo");
+    const btnUploadLogo = document.getElementById("btnUploadLogo");
+    
+    async function fileToDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    if (btnUploadLogo && cfgLogoInput) {
+      btnUploadLogo.addEventListener("click", async () => {
+        try {
+          const file = cfgLogoInput.files && cfgLogoInput.files[0];
+          if (!file) {
+            configStatus.textContent = "⚠️ Seleccioná una imagen primero.";
+            configStatus.className = "status error";
+            return;
+          }
+    
+          // límite razonable para evitar URLs gigantes
+          if (file.size > 500 * 1024) {
+            configStatus.textContent = "⚠️ El logo es muy pesado. Usá uno menor a 500 KB.";
+            configStatus.className = "status error";
+            return;
+          }
+    
+          configStatus.textContent = "Subiendo logo...";
+          configStatus.className = "status";
+    
+          const base64 = await fileToDataURL(file);
+    
+          const body = new URLSearchParams();
+          body.set("mode", "saveLogo");
+          body.set("filename", file.name);
+          body.set("base64", base64);
+    
+          const res = await fetch(SCRIPT_URL, { method: "POST", body });
+          const data = await res.json();
+    
+          if (!data.success) throw new Error(data.error || "No se pudo guardar el logo.");
+    
+          // aplicar inmediatamente
+          document.getElementById("headerLogoImg").src = data.logoUrl;
+    
+          configStatus.textContent = "✅ Logo actualizado.";
+          configStatus.className = "status ok";
+    
+          // refrescar config (para que quede consistente)
+          await loadConfig();
+    
+        } catch (err) {
+          configStatus.textContent = "❌ Error subiendo logo: " + err.message;
+          configStatus.className = "status error";
+        }
+      });
+    }
+
+    
     function renderServiciosInputs(servicios) {
       cfgServiciosList.innerHTML = "";
       const list = servicios && servicios.length ? servicios : [
@@ -1442,6 +1514,10 @@
         fillServicioSelects();
         renderServiciosInputs(serviciosConfig);
       }
+      const logoUrl = (data.logoUrl || "").trim();
+        if (logoUrl) {
+          document.getElementById("headerLogoImg").src = logoUrl;
+        }
     }
 
     // Cargar configuración al inicio
@@ -1451,6 +1527,7 @@
   </script>
 </body>
 </html>
+
 
 
 
