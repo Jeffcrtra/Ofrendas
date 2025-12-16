@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>5.50 Ofrendas Analytics – Casa de Oración</title>
+  <title>6.12 Ofrendas Analytics – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Chart.js y plugin de data labels -->
@@ -849,7 +849,7 @@
 
   <script>
     const SCRIPT_URL =
-      "https://script.google.com/macros/s/AKfycbxcqE5hyoc6_goU7t-zm3JsnrSaiDxz3qSRciDAnnev-x9Rut0htTZcrxp6_qHJd2wSug/exec";
+      "https://script.google.com/macros/s/AKfycby96ZQNDZLSIwCWH_Ef8QAQiHrBzV2hIXaxzsVweA6-gR7_YrrVfss4YeH634fRHkeVqg/exec";
 
     // Año dinámico en el footer
     document.getElementById("footerYear").textContent = new Date().getFullYear();
@@ -1341,7 +1341,9 @@
           if (!data.success) throw new Error(data.error || "No se pudo guardar el logo.");
     
           // aplicar inmediatamente
-          document.getElementById("headerLogoImg").src = data.logoUrl;
+          const bust = "v=" + Date.now();
+          document.getElementById("headerLogoImg").src =
+            data.logoUrl + (data.logoUrl.includes("?") ? "&" : "?") + bust;
     
           configStatus.textContent = "✅ Logo actualizado.";
           configStatus.className = "status ok";
@@ -1514,10 +1516,14 @@
         fillServicioSelects();
         renderServiciosInputs(serviciosConfig);
       }
-      const logoUrl = (data.logoUrl || "").trim();
-        if (logoUrl) {
-          document.getElementById("headerLogoImg").src = logoUrl;
-        }
+      const logo = (data.logoUrl || "").trim();
+      if (logo) {
+        const bust = "v=" + Date.now();
+        document.getElementById("appLogo").src = logo + (logo.includes("?") ? "&" : "?") + bust;
+      } else {
+        // fallback al logo del repo si no hay logo configurado
+        document.getElementById("appLogo").src = "CasaDeOracionLogo.jpg";
+      }
     }
 
     // Cargar configuración al inicio
@@ -1527,6 +1533,7 @@
   </script>
 </body>
 </html>
+
 
 
 
