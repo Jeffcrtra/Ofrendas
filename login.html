@@ -1,0 +1,118 @@
+<div id="screen-login">
+  <h2>Iniciar sesión</h2>
+  <input id="loginUser" placeholder="Usuario">
+  <input id="loginPass" placeholder="Password" type="password">
+  <button onclick="login()">Entrar</button>
+  <div id="loginMsg"></div>
+</div>
+
+<div id="screen-app" style="display:none;">
+  <div>
+    <strong id="whoami"></strong>
+    <button onclick="logout()">Salir</button>
+  </div>
+
+  <div id="formIngreso">
+    <h3>Nuevo ingreso</h3>
+    <input id="monto" type="number" placeholder="Monto">
+    <input id="asistencia" type="number" placeholder="Asistencia">
+    <input id="servicio" placeholder="Servicio">
+    <input id="fecha" type="date">
+    <input id="notas" placeholder="Notas">
+    <button onclick="addIngreso()">Guardar</button>
+    <div id="saveMsg"></div>
+  </div>
+
+  <h3>Ingresos</h3>
+  <div id="tabla"></div>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbyEmE-nt_oYjtqUzH85ssGZtaEcuZnWIGsLoJDNG__xfPdh4gbWHYKZauSP6Q3hAMKX/exec"; // tu doPost
+
+function setMsg(id, txt){ document.getElementById(id).textContent = txt || ""; }
+
+async function api(payload){
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
+  });
+  return await res.json();
+}
+
+async function login(){
+  setMsg("loginMsg", "");
+  const usuario = document.getElementById("loginUser").value.trim();
+  const password = document.getElementById("loginPass").value;
+
+  const r = await api({ action:"login", usuario, password });
+  if(!r.ok){ setMsg("loginMsg", r.error || "Error"); return; }
+
+  localStorage.setItem("token", r.token);
+  localStorage.setItem("usuario", r.usuario);
+  localStorage.setItem("iglesia", r.iglesia);
+  localStorage.setItem("acceso", r.acceso);
+
+  showApp();
+}
+
+function logout(){
+  localStorage.removeItem("token");
+  localStorage.removeItem("usuario");
+  localStorage.removeItem("iglesia");
+  localStorage.removeItem("acceso");
+  location.reload();
+}
+
+async function showApp(){
+  document.getElementById("screen-login").style.display = "none";
+  document.getElementById("screen-app").style.display = "block";
+
+  const usuario = localStorage.getItem("usuario");
+  const iglesia = localStorage.getItem("iglesia");
+  const acceso = localStorage.getItem("acceso");
+
+  document.getElementById("whoami").textContent = `${usuario} · ${iglesia} · ${acceso}`;
+
+  // Control UI por acceso (esto es UX; la seguridad real está en el backend)
+  if(acceso === "viewer"){
+    document.getElementById("formIngreso").style.display = "none";
+  }
+
+  await loadIngresos();
+}
+
+async function loadIngresos(){
+  const token = localStorage.getItem("token");
+  const r = await api({ action:"getIngresos", token, limit: 200 });
+  if(!r.ok){ alert(r.error || "Error"); logout(); return; }
+  renderTable(r.header, r.rows);
+}
+
+async function addIngreso(){
+  setMsg("saveMsg", "");
+  const token = localStorage.getItem("token");
+
+  const payload = {
+    action:"addIngreso",
+    token,
+    monto: document.getElementById("monto").value,
+    asistencia: document.getElementById("asistencia").value,
+    servicio: document.getElementById("servicio").value.trim(),
+    fecha: document.getElementById("fecha").value,
+    notas: document.getElementById("notas").value.trim()
+  };
+
+  const r = await api(payload);
+  if(!r.ok){ setMsg("saveMsg", r.error || "Error"); return; }
+
+  setMsg("saveMsg", "✅ Guardado");
+  await loadIngresos();
+}
+
+(function init(){
+  const token = localStorage.getItem("token");
+  if(token) showApp();
+})();
+</script>
