@@ -1,198 +1,118 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <title>2.30 Registro de Ofrendas – Casa de Oración</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 1.5rem;
-      background: #f5f5f5;
-    }
-    h1 {
-      font-size: 1.4rem;
-      text-align: center;
-      margin: 0.5rem 0 1rem 0;
-    }
-    .logo {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 0.5rem;
-    }
-    .logo img {
-      max-width: 180px;
-      height: auto;
-      border-radius: 8px;
-    }
-    form {
-      background: #ffffff;
-      padding: 1rem 1.2rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    }
-    label {
-      display: block;
-      font-size: 0.9rem;
-      margin-top: 0.8rem;
-      margin-bottom: 0.2rem;
-    }
-    input, textarea, button {
-      width: 100%;
-      box-sizing: border-box;
-      font-size: 1rem;
-    }
-    input, textarea {
-      padding: 0.5rem 0.6rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      outline: none;
-    }
-    input:focus, textarea:focus {
-      border-color: #4a90e2;
-    }
-    textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
-    button {
-      margin-top: 1rem;
-      padding: 0.6rem;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      background: #4caf50;
-      color: #fff;
-    }
-    button:active {
-      transform: translateY(1px);
-    }
-    .status {
-      margin-top: 0.8rem;
-      font-size: 0.9rem;
-    }
-    .status.ok {
-      color: #2e7d32;
-    }
-    .status.error {
-      color: #c62828;
-    }
+<div id="screen-login">
+  <h2>Iniciar sesión</h2>
+  <input id="loginUser" placeholder="Usuario">
+  <input id="loginPass" placeholder="Password" type="password">
+  <button onclick="login()">Entrar</button>
+  <div id="loginMsg"></div>
+</div>
 
-    /* Quitar flechas de los inputs numéricos */
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-    }
-  </style>
-</head>
-<body>
-  <div class="logo">
-    <!-- Asegúrate de que el archivo exista en el repo con este nombre -->
-    <img src="CasaDeOracionLogo.jpg" alt="Casa de Oración">
+<div id="screen-app" style="display:none;">
+  <div>
+    <strong id="whoami"></strong>
+    <button onclick="logout()">Salir</button>
   </div>
 
-  <h1>Registro de Ofrendas</h1>
+  <div id="formIngreso">
+    <h3>Nuevo ingreso</h3>
+    <input id="monto" type="number" placeholder="Monto">
+    <input id="asistencia" type="number" placeholder="Asistencia">
+    <input id="servicio" placeholder="Servicio">
+    <input id="fecha" type="date">
+    <input id="notas" placeholder="Notas">
+    <button onclick="addIngreso()">Guardar</button>
+    <div id="saveMsg"></div>
+  </div>
 
-  <form id="ofrendaForm">
-    <!-- Fecha se pone automática en el servidor -->
-
-    <label for="monto">Monto (₡)</label>
-    <input
-      type="number"
-      id="monto"
-      name="monto"
-      required
-      min="0"
-      step="1"
-      inputmode="numeric"
-      pattern="[0-9]*"
-    />
-
-    <label for="concepto">Concepto</label>
-    <input
-      type="text"
-      id="concepto"
-      name="concepto"
-      required
-      placeholder="Diezmo, ofrenda, especial..."
-    />
-
-    <label for="notas">Notas</label>
-    <textarea
-      id="notas"
-      name="notas"
-      placeholder="Detalles adicionales (opcional)"
-    ></textarea>
-
-    <button type="submit">Guardar</button>
-
-    <div id="status" class="status"></div>
-  </form>
+  <h3>Ingresos</h3>
+  <div id="tabla"></div>
+</div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiESV-GMfq48Tvts8BK8WOc3_jS4bU9tTlRoBxNpp-s-LN1O1Qf1cpL4y30wT94USCMQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyEmE-nt_oYjtqUzH85ssGZtaEcuZnWIGsLoJDNG__xfPdh4gbWHYKZauSP6Q3hAMKX/exec"; // tu doPost
 
-  const form = document.getElementById('ofrendaForm');
-  const statusEl = document.getElementById('status');
+function setMsg(id, txt){ document.getElementById(id).textContent = txt || ""; }
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    statusEl.textContent = "Enviando...";
-    statusEl.className = "status";
-
-    const montoRaw = document.getElementById('monto').value;
-    const monto = parseInt(montoRaw, 10);
-    const concepto = document.getElementById('concepto').value;
-    const notas = document.getElementById('notas').value;
-
-    if (isNaN(monto)) {
-      statusEl.textContent = "⚠️ El monto debe ser un número entero.";
-      statusEl.className = "status error";
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('monto', monto);
-    formData.append('concepto', concepto);
-    formData.append('notas', notas);
-
-    try {
-      const res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: formData
-      });
-
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (parseErr) {
-        throw new Error("Respuesta no válida del servidor: " + text);
-      }
-
-      if (data.success) {
-        statusEl.textContent = "✅ Ofrenda registrada correctamente.";
-        statusEl.className = "status ok";
-        form.reset();
-      } else {
-        statusEl.textContent = "⚠️ Error al guardar: " + (data.error || "desconocido");
-        statusEl.className = "status error";
-      }
-    } catch (err) {
-      statusEl.textContent = "❌ Error de conexión: " + err.toString();
-      statusEl.className = "status error";
-    }
+async function api(payload){
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
   });
+  return await res.json();
+}
+
+async function login(){
+  setMsg("loginMsg", "");
+  const usuario = document.getElementById("loginUser").value.trim();
+  const password = document.getElementById("loginPass").value;
+
+  const r = await api({ action:"login", usuario, password });
+  if(!r.ok){ setMsg("loginMsg", r.error || "Error"); return; }
+
+  localStorage.setItem("token", r.token);
+  localStorage.setItem("usuario", r.usuario);
+  localStorage.setItem("iglesia", r.iglesia);
+  localStorage.setItem("acceso", r.acceso);
+
+  showApp();
+}
+
+function logout(){
+  localStorage.removeItem("token");
+  localStorage.removeItem("usuario");
+  localStorage.removeItem("iglesia");
+  localStorage.removeItem("acceso");
+  location.reload();
+}
+
+async function showApp(){
+  document.getElementById("screen-login").style.display = "none";
+  document.getElementById("screen-app").style.display = "block";
+
+  const usuario = localStorage.getItem("usuario");
+  const iglesia = localStorage.getItem("iglesia");
+  const acceso = localStorage.getItem("acceso");
+
+  document.getElementById("whoami").textContent = `${usuario} · ${iglesia} · ${acceso}`;
+
+  // Control UI por acceso (esto es UX; la seguridad real está en el backend)
+  if(acceso === "viewer"){
+    document.getElementById("formIngreso").style.display = "none";
+  }
+
+  await loadIngresos();
+}
+
+async function loadIngresos(){
+  const token = localStorage.getItem("token");
+  const r = await api({ action:"getIngresos", token, limit: 200 });
+  if(!r.ok){ alert(r.error || "Error"); logout(); return; }
+  renderTable(r.header, r.rows);
+}
+
+async function addIngreso(){
+  setMsg("saveMsg", "");
+  const token = localStorage.getItem("token");
+
+  const payload = {
+    action:"addIngreso",
+    token,
+    monto: document.getElementById("monto").value,
+    asistencia: document.getElementById("asistencia").value,
+    servicio: document.getElementById("servicio").value.trim(),
+    fecha: document.getElementById("fecha").value,
+    notas: document.getElementById("notas").value.trim()
+  };
+
+  const r = await api(payload);
+  if(!r.ok){ setMsg("saveMsg", r.error || "Error"); return; }
+
+  setMsg("saveMsg", "✅ Guardado");
+  await loadIngresos();
+}
+
+(function init(){
+  const token = localStorage.getItem("token");
+  if(token) showApp();
+})();
 </script>
-</body>
-</html>
-
-
-
