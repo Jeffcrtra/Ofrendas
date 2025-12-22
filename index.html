@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>12.06 Ofrendas Analytics</title>
+  <title>12.15 Ofrendas Analytics</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -565,11 +565,15 @@
   }
 
   async function api(payload){
+    const form = new URLSearchParams();
+    Object.entries(payload || {}).forEach(([k,v]) => form.append(k, String(v ?? "")));
+  
     const res = await fetch(API_URL, {
-      method:"POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload || {})
+      method: "POST",
+      headers: { "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" },
+      body: form.toString()
     });
+  
     return await res.json();
   }
 
@@ -926,3 +930,4 @@
 </script>
 </body>
 </html>
+
