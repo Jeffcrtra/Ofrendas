@@ -1,1545 +1,681 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>6.12 Ofrendas Analytics – Casa de Oración</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Chart.js y plugin de data labels -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>11.53 Ofrendas – Login</title>
   <style>
-    :root {
-      --color-bg: #0f172a;
-      --color-surface: #ffffff;
-      --color-surface-soft: #f9fafb;
-      --color-primary: #1e88e5;
-      --color-primary-soft: rgba(30, 136, 229, 0.1);
-      --color-accent: #f57c00;
-      --color-success: #4caf50;
-      --color-border: #e5e7eb;
-      --color-text-main: #111827;
-      --color-text-soft: #6b7280;
-      --color-footer: #9ca3af;
-      --radius-lg: 16px;
-      --radius-md: 12px;
-      --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.18);
-      --shadow-subtle: 0 4px 10px rgba(15, 23, 42, 0.12);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
-      color: var(--color-text-main);
-      display: flex;
-      justify-content: center;
-      padding: 1.5rem 0.75rem;
-    }
-
-    .app-shell {
-      width: 100%;
-      max-width: 560px;
-      min-height: 90vh;
-      background: linear-gradient(180deg, #f9fafb 0, #ffffff 40%, #f9fafb 100%);
-      border-radius: 24px;
-      box-shadow: var(--shadow-soft);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .app-header {
-      padding: 1rem 1.5rem 0.75rem;
-      border-bottom: 1px solid var(--color-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-      background: linear-gradient(135deg, #ffffff 0, #e5f2ff 45%, #fff7ed 100%);
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      min-width: 0;
-    }
-
-    .header-logo {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.9);
-      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.16);
-      flex-shrink: 0;
-    }
-
-    .header-logo img {
-      max-width: 32px;
-      max-height: 32px;
-      border-radius: 8px;
-      object-fit: contain;
-    }
-
-    .header-text-main {
-      display: flex;
-      flex-direction: column;
-      gap: 0.1rem;
-      min-width: 0;
-    }
-
-    .header-title {
-      font-weight: 700;
-      font-size: 1.05rem;
-      letter-spacing: 0.01em;
-      color: #0f172a;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .header-subtitle {
-      font-size: 0.82rem;
-      color: #4b5563;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .icon-btn {
-      border: none;
-      background: rgba(15, 23, 42, 0.04);
-      border-radius: 999px;
-      padding: 0.35rem 0.55rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      color: #111827;
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
-      transition: background 0.16s ease, transform 0.1s ease, box-shadow 0.16s ease;
-    }
-    .icon-btn:hover {
-      background: rgba(15, 23, 42, 0.08);
-      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.22);
-    }
-    .icon-btn:active {
-      transform: translateY(1px) scale(0.97);
-      box-shadow: var(--shadow-subtle);
-    }
-
-    .app-main {
-      flex: 1;
-      padding: 1.2rem 1.5rem 1rem;
-      overflow-y: auto;
-      background: transparent;
-    }
-
-    .screen {
-      display: none;
-      animation: fadeIn 0.22s ease-out;
-    }
-    .screen.active {
-      display: block;
-    }
-
-    .screen-title-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.9rem;
-    }
-    .screen-title {
-      font-size: 1.05rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      color: #111827;
-    }
-    .screen-title span.emoji {
-      font-size: 1.2rem;
-    }
-
-    .back-btn {
-      border: none;
-      background: transparent;
-      color: var(--color-primary);
-      font-size: 0.85rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.2rem;
-      cursor: pointer;
-      padding: 0.25rem 0.6rem;
-      border-radius: 999px;
-      transition: background 0.15s ease, transform 0.1s ease;
-    }
-    .back-btn:hover {
-      background: rgba(30, 136, 229, 0.1);
-    }
-    .back-btn:active {
-      transform: translateY(1px);
-    }
-
-    /* HOME */
-
-    .home-intro {
-      margin-bottom: 1.2rem;
-    }
-    .home-intro-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #111827;
-      margin-bottom: 0.3rem;
-    }
-    .home-intro-text {
-      font-size: 0.9rem;
-      color: #4b5563;
-    }
-
-    .home-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-      margin-top: 1rem;
-    }
-
-    .home-card {
-      border-radius: var(--radius-lg);
-      padding: 0.85rem 1rem;
-      background: #ffffff;
-      border: 1px solid var(--color-border);
-      box-shadow: var(--shadow-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease, background 0.12s ease;
-    }
-
-    .home-card-main {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    .home-card-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-    }
-
-    .home-card-text-title {
-      font-size: 0.98rem;
-      font-weight: 600;
-      color: #111827;
-    }
-    .home-card-text-sub {
-      font-size: 0.83rem;
-      color: #6b7280;
-    }
-
-    .home-card-chevron {
-      font-size: 1rem;
-      color: #9ca3af;
-    }
-
-    .home-card:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16);
-      border-color: rgba(30, 136, 229, 0.45);
-      background: #f9fafb;
-    }
-    .home-card:active {
-      transform: translateY(1px) scale(0.99);
-      box-shadow: var(--shadow-subtle);
-    }
-
-    .home-card-primary .home-card-icon {
-      background: var(--color-primary-soft);
-      color: var(--color-primary);
-    }
-    .home-card-analytics .home-card-icon {
-      background: rgba(245, 124, 0, 0.08);
-      color: var(--color-accent);
-    }
-    .home-card-contact .home-card-icon {
-      background: rgba(16, 185, 129, 0.08);
-      color: #059669;
-    }
-
-    /* FORMULARIOS GENERALES */
-
-    form {
-      background: #ffffff;
-      padding: 1rem 1.1rem 1.2rem;
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-subtle);
-      border: 1px solid var(--color-border);
-    }
-
-    .form-section-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #4b5563;
-      margin-bottom: 0.4rem;
-    }
-
-    label {
-      display: block;
-      font-size: 0.85rem;
-      margin-top: 0.75rem;
-      margin-bottom: 0.18rem;
-      color: #4b5563;
-    }
-
-    .field-wrapper {
-      position: relative;
-    }
-
-    .field-icon {
-      position: absolute;
-      left: 0.55rem;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.9rem;
-      color: #9ca3af;
-      pointer-events: none;
-    }
-
-    input, textarea, select, button {
-      width: 100%;
-      box-sizing: border-box;
-      font-size: 0.95rem;
-      font-family: inherit;
-    }
-
-    input, textarea, select {
-      padding: 0.55rem 0.7rem;
-      border-radius: 9px;
-      border: 1px solid #d1d5db;
-      outline: none;
-      background: #ffffff;
-      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
-    }
-
-    .field-with-icon input {
-      padding-left: 1.8rem;
-    }
-
-    input:focus, textarea:focus, select:focus {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 1px rgba(30, 136, 229, 0.2);
-      background: #f9fcff;
-    }
-
-    textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
-
-    button {
-      margin-top: 1rem;
-      padding: 0.7rem;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      transition: background 0.16s ease, transform 0.12s ease, box-shadow 0.16s ease;
-    }
-
-    button:active {
-      transform: translateY(1px) scale(0.99);
-    }
-
-    .btn-guardar {
-      background: var(--color-success);
-      color: #ffffff;
-      box-shadow: 0 8px 18px rgba(34, 197, 94, 0.35);
-    }
-    .btn-guardar:hover {
-      background: #43a047;
-    }
-
-    .btn-accion {
-      background: var(--color-primary);
-      color: #ffffff;
-      box-shadow: 0 8px 18px rgba(30, 136, 229, 0.35);
-    }
-    .btn-accion:hover {
-      background: #1976d2;
-    }
-
-    .btn-secondary {
-      background: #e5e7eb;
-      color: #111827;
-      box-shadow: none;
-      font-size: 0.85rem;
-      padding: 0.45rem 0.8rem;
-      width: auto;
-    }
-    .btn-secondary:hover {
-      background: #d1d5db;
-    }
-
-    .status {
-      margin-top: 0.75rem;
-      font-size: 0.85rem;
-    }
-    .status.ok {
-      color: #15803d;
-    }
-    .status.error {
-      color: #b91c1c;
-    }
-
-    /* Quitar flechas de los inputs numéricos */
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-    }
-
-    /* ANALISIS */
-
-    .graphs-container {
-      margin-bottom: 0.9rem;
-      background: #ffffff;
-      padding: 0.9rem 1.1rem 1rem;
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-subtle);
-      border: 1px solid var(--color-border);
-      display: flex;
-      flex-direction: column;
-      gap: 0.7rem;
-    }
-
-    .graphs-row {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-
-    .input-small-label {
-      font-size: 0.83rem;
-      color: #4b5563;
-    }
-
-    #graficoContainer {
-      margin-top: 0.6rem;
-      width: 100%;
-      height: 360px;
-      display: none;
-      background: #ffffff;
-      border-radius: var(--radius-lg);
-      padding: 0.75rem 0.75rem 0.9rem;
-      box-shadow: var(--shadow-subtle);
-      border: 1px solid var(--color-border);
-      transition: height 0.3s ease;
-    }
-    #graficoContainer.expanded-chart {
-      height: 70vh;
-    }
-
-    #graficoCanvas {
-      width: 100%;
-      height: 65%;
-    }
-
-    #customLegend {
-      margin-top: 0.7rem;
-      font-size: 0.8rem;
-      color: #4b5563;
-    }
-
-    #resumenBox {
-      margin-top: 0.7rem;
-      padding: 0.6rem 0.8rem;
-      border-radius: 10px;
-      background: #e3f2fd;
-      font-size: 0.85rem;
-      color: #0f172a;
-    }
-
-    #resumenBox-title {
-      font-weight: 600;
-      margin-bottom: 0.2rem;
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-
-    /* CONTACTO + CONFIG */
-
-    .contact-card {
-      background: #ffffff;
-      padding: 1rem 1.1rem 1.2rem;
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-subtle);
-      border: 1px solid var(--color-border);
-      font-size: 0.9rem;
-      color: #374151;
-    }
-
-    .contact-section-title {
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
-    .contact-text {
-      margin-bottom: 0.6rem;
-      color: #4b5563;
-    }
-
-    .contact-links {
-      margin-top: 0.4rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .contact-links a {
-      color: var(--color-primary);
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 0.9rem;
-    }
-
-    .contact-links a:hover {
-      text-decoration: underline;
-    }
-
-    .cfg-servicio-row {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      margin-top: 0.35rem;
-    }
-
-    .cfg-servicio-row input {
-      flex: 1;
-      padding: 0.4rem 0.6rem;
-      font-size: 0.85rem;
-    }
-
-    /* FOOTER */
-
-    #appFooter {
-      padding: 0.7rem 1.5rem 0.9rem;
-      border-top: 1px solid var(--color-border);
-      font-size: 0.8rem;
-      color: var(--color-footer);
-      background: #f9fafb;
-    }
-
-    #appFooter a {
-      color: var(--color-primary);
-      text-decoration: none;
-      font-weight: 500;
-    }
-    #appFooter a:hover {
-      text-decoration: underline;
-    }
-
-    /* ANIMACIONES */
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    :root{
+      --bg:#0b1220;
+      --card:#101a33;
+      --muted:#93a4c7;
+      --text:#e9efff;
+      --line:rgba(255,255,255,.10);
+      --btn:#2b63ff;
+      --btn2:#1b2a55;
+      --bad:#ff4d4d;
+      --ok:#2dd4bf;
+      --shadow:0 14px 40px rgba(0,0,0,.35);
+      --radius:18px;
+      --pad:16px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", "Noto Sans";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--font);
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(43,99,255,.25), transparent 55%),
+                  radial-gradient(900px 600px at 80% 0%, rgba(45,212,191,.18), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      padding:22px;
+    }
+    .wrap{width:min(980px, 100%);}
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 10px 6px 18px 6px;
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .brand h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .brand .sub{
+      color:var(--muted);
+      font-size:13px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+      user-select:none;
+    }
+    .pill strong{color:var(--text); font-weight:600;}
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:16px;
+    }
+    @media(min-width: 880px){
+      .grid{grid-template-columns: 360px 1fr;}
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: var(--pad);
+    }
+    .card h2{
+      margin:0 0 10px 0;
+      font-size:16px;
+    }
+    .muted{color:var(--muted); font-size:13px; line-height:1.4}
+
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin:12px 0 6px;
+    }
+    input, textarea, select{
+      width:100%;
+      background: rgba(10,16,34,.55);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 11px 12px;
+      outline:none;
+      font-size:14px;
+    }
+    input::placeholder, textarea::placeholder{color:rgba(147,164,199,.75)}
+    textarea{min-height:84px; resize:vertical}
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .row3{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:10px;
+    }
+    @media(max-width:520px){
+      .row, .row3{grid-template-columns: 1fr;}
+    }
+
+    .btns{
+      display:flex;
+      gap:10px;
+      margin-top:14px;
+      flex-wrap:wrap;
+    }
+    button{
+      border:0;
+      cursor:pointer;
+      border-radius: 14px;
+      padding: 11px 14px;
+      font-weight:600;
+      font-size:14px;
+      transition: transform .06s ease, filter .15s ease;
+      user-select:none;
+    }
+    button:active{transform: translateY(1px);}
+    .primary{background: var(--btn); color:white;}
+    .secondary{background: rgba(255,255,255,.07); border:1px solid var(--line); color: var(--text);}
+    .ghost{background: transparent; border:1px dashed var(--line); color: var(--muted);}
+    .danger{background: rgba(255,77,77,.18); border:1px solid rgba(255,77,77,.35); color: #ffd0d0;}
+
+    .msg{
+      margin-top:10px;
+      font-size:13px;
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      display:none;
+    }
+    .msg.ok{border-color: rgba(45,212,191,.35); background: rgba(45,212,191,.10); color:#cafff6;}
+    .msg.bad{border-color: rgba(255,77,77,.35); background: rgba(255,77,77,.10); color:#ffd0d0;}
+
+    .toolbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(10,16,34,.35);
+    }
+    th, td{
+      padding:10px 10px;
+      font-size:13px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      vertical-align: top;
+    }
+    th{
+      text-align:left;
+      color: var(--muted);
+      font-weight:700;
+      background: rgba(255,255,255,.04);
+    }
+    tr:last-child td{border-bottom:0;}
+    .small{font-size:12px; color:var(--muted);}
+    .right{text-align:right;}
+    .nowrap{white-space:nowrap;}
+    .hide{display:none !important;}
+
+    .badge{
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      font-size:12px;
+      color: var(--muted);
+    }
+    .badge strong{color:var(--text)}
+    .divider{
+      height:1px;
+      background: var(--line);
+      margin: 12px 0;
+    }
+    .hint{
+      border-left: 3px solid rgba(43,99,255,.55);
+      padding-left:10px;
+      margin-top:10px;
+    }
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
   </style>
 </head>
+
 <body>
-  <div class="app-shell">
-    <!-- HEADER -->
-    <header class="app-header">
-      <div class="header-left">
-        <div class="header-logo">
-          <img id="headerLogoImg" src="CasaDeOracionLogo.jpg" alt="Casa de Oración">
-        </div>
-        <div class="header-text-main">
-          <div class="header-title">Ofrendas Analytics</div>
-          <div id="headerSubtitle" class="header-subtitle">
-            Casa de Oración · Módulo de Ofrendas
-          </div>
-        </div>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>Ofrendas Analytics</h1>
+        <div class="sub">Login + registro de ingresos por iglesia (filtrado por usuario)</div>
       </div>
-      <div class="header-actions">
-        <button type="button" class="icon-btn" onclick="navigateTo('screen-config')"
-                title="Configuración">
-          ☰
-        </button>
+      <div class="pill">
+        <span>Estado:</span>
+        <strong id="statusText">No autenticado</strong>
       </div>
     </header>
 
-    <!-- MAIN -->
-    <main class="app-main">
-      <!-- SCREEN: HOME -->
-      <section id="screen-home" class="screen active">
-        <div class="home-intro">
-          <div class="home-intro-title">¿Qué deseás hacer hoy?</div>
-          <div class="home-intro-text">
-            Registrá las ofrendas del servicio o revisá el análisis histórico de montos y asistencia.
-          </div>
+    <div class="grid">
+      <!-- LEFT: LOGIN + USER INFO -->
+      <section class="card" id="cardAuth">
+        <h2>Iniciar sesión</h2>
+        <div class="muted">Usá tu usuario (por ahora puede ser string; más adelante será email) y password.</div>
+
+        <label for="loginUser">Usuario</label>
+        <input id="loginUser" placeholder="ej: jeff o jeff@mail.com" autocomplete="username" />
+
+        <label for="loginPass">Password</label>
+        <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" />
+
+        <div class="btns">
+          <button class="primary" id="btnLogin" onclick="login()">Entrar</button>
+          <button class="secondary" onclick="demoFill()">Llenar demo</button>
         </div>
 
-        <div class="home-actions">
-          <div class="home-card home-card-primary" onclick="navigateTo('screen-ingreso')">
-            <div class="home-card-main">
-              <div class="home-card-icon">✍️</div>
-              <div>
-                <div class="home-card-text-title">Ingresar Ofrenda</div>
-                <div class="home-card-text-sub">Registro rápido por servicio, con notas opcionales.</div>
-              </div>
-            </div>
-            <div class="home-card-chevron">›</div>
-          </div>
+        <div class="msg" id="loginMsg"></div>
 
-          <div class="home-card home-card-analytics" onclick="navigateTo('screen-analisis')">
-            <div class="home-card-main">
-              <div class="home-card-icon">📈</div>
-              <div>
-                <div class="home-card-text-title">Ver Análisis</div>
-                <div class="home-card-text-sub">Montos, asistencia y tendencia por servicio.</div>
-              </div>
-            </div>
-            <div class="home-card-chevron">›</div>
-          </div>
+        <div class="divider"></div>
 
-          <div class="home-card home-card-contact" onclick="navigateTo('screen-contacto')">
-            <div class="home-card-main">
-              <div class="home-card-icon">💬</div>
-              <div>
-                <div class="home-card-text-title">Contacto y sugerencias</div>
-                <div class="home-card-text-sub">Comentá mejoras, dudas o ideas futuras.</div>
-              </div>
-            </div>
-            <div class="home-card-chevron">›</div>
-          </div>
+        <h2>Sesión</h2>
+        <div id="sessionBox" class="muted">Todavía no hay sesión.</div>
+
+        <div class="btns">
+          <button class="danger" onclick="logout()">Cerrar sesión</button>
+          <button class="ghost" onclick="hardRefresh()">Refrescar datos</button>
+        </div>
+
+        <div class="hint muted">
+          <div><strong>Importante:</strong> ocultar botones en el HTML es UX, no seguridad.</div>
+          <div>La seguridad real debe estar en el <span class="mono">Apps Script</span> (backend), validando permisos.</div>
         </div>
       </section>
 
-      <!-- SCREEN: INGRESO -->
-      <section id="screen-ingreso" class="screen">
-        <div class="screen-title-row">
-          <div class="screen-title">
-            <span class="emoji">✍️</span>
-            <span>Ingresar Ofrenda</span>
-          </div>
-          <button type="button" class="back-btn" onclick="navigateTo('screen-home')">
-            ← Inicio
-          </button>
-        </div>
-
-        <form id="ofrendaForm">
-          <div class="form-section-title">Datos del servicio</div>
-
-          <!-- Servicio -->
-          <label for="conceptoSelect">Servicio</label>
-          <select id="conceptoSelect" name="conceptoSelect" required>
-            <option value="" disabled selected>Seleccioná un servicio</option>
-            <!-- Servicios se llenan dinámicamente desde Config -->
-          </select>
-
-          <!-- Monto -->
-          <label for="monto">Monto (₡)</label>
-          <div class="field-wrapper field-with-icon">
-            <span class="field-icon">₡</span>
-            <input
-              type="number"
-              id="monto"
-              name="monto"
-              required
-              min="0"
-              step="1"
-              inputmode="numeric"
-              pattern="[0-9]*"
-            />
-          </div>
-          <div id="montoPreview" style="margin-top:0.2rem;font-size:0.8rem;color:#6b7280;"></div>
-
-          <!-- Asistencia -->
-          <label for="asistencia">Asistencia</label>
-          <div class="field-wrapper field-with-icon">
-            <span class="field-icon">👥</span>
-            <input
-              type="number"
-              id="asistencia"
-              name="asistencia"
-              min="0"
-              step="1"
-              inputmode="numeric"
-              pattern="[0-9]*"
-              placeholder="Cantidad de personas"
-            />
+      <!-- RIGHT: APP -->
+      <section class="card" id="cardApp">
+        <div class="toolbar">
+          <div class="badge" id="badgeWho">
+            <span>👤</span> <strong id="whoUser">—</strong>
+            <span>· ⛪</span> <strong id="whoChurch">—</strong>
+            <span>· 🔐</span> <strong id="whoRole">—</strong>
           </div>
 
-          <!-- Notas -->
-          <label for="notas">Notas</label>
-          <textarea
-            id="notas"
-            name="notas"
-            placeholder="Detalles adicionales (opcional)"
-          ></textarea>
-
-          <button type="submit" class="btn-guardar">Guardar ofrenda</button>
-          <div id="status" class="status"></div>
-          <div id="postSubmitActions" style="margin-top:0.5rem;font-size:0.85rem;display:none;"></div>
-        </form>
-      </section>
-
-      <!-- SCREEN: ANALISIS -->
-      <section id="screen-analisis" class="screen">
-        <div class="screen-title-row">
-          <div class="screen-title">
-            <span class="emoji">📈</span>
-            <span>Ver análisis</span>
-          </div>
-          <button type="button" class="back-btn" onclick="navigateTo('screen-home')">
-            ← Inicio
-          </button>
-        </div>
-
-        <div class="graphs-container">
-          <div class="graphs-row">
-            <div class="input-small-label">Servicio a visualizar</div>
-            <select id="tipoGrafico">
-              <option value="" selected>Seleccioná un servicio</option>
-              <!-- Servicios se llenan dinámicamente desde Config -->
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <select id="limitSel" onchange="loadIngresos()">
+              <option value="50">Últimos 50</option>
+              <option value="100" selected>Últimos 100</option>
+              <option value="200">Últimos 200</option>
+              <option value="500">Últimos 500</option>
             </select>
+            <button class="secondary" onclick="loadIngresos()">Recargar</button>
           </div>
-
-          <button id="toggleSizeBtn" type="button" class="btn-accion">
-            Ampliar gráfico
-          </button>
         </div>
 
-        <!-- Contenedor del gráfico y resumen -->
-        <div id="graficoContainer">
-          <canvas id="graficoCanvas"></canvas>
-          <div id="customLegend"></div>
+        <!-- FORM (hidden for viewer) -->
+        <div id="formIngresoWrap">
+          <h2>Nuevo ingreso</h2>
 
-          <div id="resumenBox">
-            <div id="resumenBox-title">
-              <span>📊 Resumen analítico</span>
+          <div class="row3">
+            <div>
+              <label for="fecha">Fecha</label>
+              <input id="fecha" type="date" />
             </div>
-            <div id="resumenTexto"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- SCREEN: CONTACTO -->
-      <section id="screen-contacto" class="screen">
-        <div class="screen-title-row">
-          <div class="screen-title">
-            <span class="emoji">💬</span>
-            <span>Contacto y sugerencias</span>
-          </div>
-          <button type="button" class="back-btn" onclick="navigateTo('screen-home')">
-            ← Inicio
-          </button>
-        </div>
-
-        <form id="contactForm" class="contact-card">
-          <div class="contact-section-title">Enviá tu mensaje</div>
-          <div class="contact-text">
-            Podés proponer nuevas funciones, reportar algún problema o compartir ideas
-            para mejorar Ofrendas Analytics.
+            <div>
+              <label for="monto">Monto</label>
+              <input id="monto" type="number" inputmode="decimal" placeholder="₡" />
+            </div>
+            <div>
+              <label for="asistencia">Asistencia</label>
+              <input id="asistencia" type="number" inputmode="numeric" placeholder="0" />
+            </div>
           </div>
 
-          <label for="contactNombre">Nombre (opcional)</label>
-          <input id="contactNombre" type="text" placeholder="Tu nombre" />
-
-          <label for="contactEmail">Correo electrónico (opcional)</label>
-          <input id="contactEmail" type="email" placeholder="tu@correo.com" />
-
-          <label for="contactMensaje">Mensaje</label>
-          <textarea id="contactMensaje" placeholder="Escribí aquí tus comentarios"></textarea>
-
-          <button type="submit" class="btn-accion">Enviar por WhatsApp</button>
-          <div id="contactStatus" class="status"></div>
-        </form>
-      </section>
-
-      <!-- SCREEN: CONFIG -->
-      <section id="screen-config" class="screen">
-        <div class="screen-title-row">
-          <div class="screen-title">
-            <span class="emoji">⚙️</span>
-            <span>Configuración</span>
+          <div class="row">
+            <div>
+              <label for="servicio">Servicio</label>
+              <input id="servicio" placeholder="Ej: Domingo AM" />
+            </div>
+            <div>
+              <label for="notas">Notas</label>
+              <input id="notas" placeholder="Opcional" />
+            </div>
           </div>
-          <button type="button" class="back-btn" onclick="navigateTo('screen-home')">
-            ← Inicio
-          </button>
+
+          <div class="btns">
+            <button class="primary" onclick="addIngreso()">Guardar ingreso</button>
+            <button class="secondary" onclick="clearForm()">Limpiar</button>
+          </div>
+
+          <div class="msg" id="saveMsg"></div>
+
+          <div class="divider"></div>
         </div>
 
-        <form id="configForm" class="contact-card">
-          <div class="contact-section-title">Datos de la iglesia</div>
+        <h2>Ingresos</h2>
+        <div class="muted" id="tableInfo">Cargando…</div>
+        <div style="margin-top:10px; overflow:auto;">
+          <table id="tbl">
+            <thead>
+              <tr>
+                <th class="nowrap">Fecha</th>
+                <th class="right nowrap">Monto</th>
+                <th class="right nowrap">Asistencia</th>
+                <th>Servicio</th>
+                <th>Notas</th>
+                <th class="nowrap">Usuario</th>
+              </tr>
+            </thead>
+            <tbody id="tblBody">
+              <tr><td colspan="6" class="muted">Iniciá sesión para ver datos.</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-          <label for="cfgIglesia">Nombre de la iglesia</label>
-          <input id="cfgIglesia" type="text" placeholder="Ej: Casa de Oración" />
-
-          <div class="contact-section-title" style="margin-top:0.9rem;">Servicios</div>
-          <div class="contact-text">
-            Estos servicios aparecerán en los menús desplegables. Máximo 10.
-          </div>
-
-          <div id="cfgServiciosList"></div>
-
-          <button type="button" id="btnAddServicio" class="btn-secondary" style="margin-top:0.7rem;">
-            + Agregar servicio
-          </button>
-
-          <button type="submit" class="btn-accion">Guardar configuración</button>
-          <div id="configStatus" class="status"></div>
-
-          <label for="cfgLogo">Logo (imagen)</label>
-          <input id="cfgLogo" type="file" accept="image/*" />
-          <div style="font-size:0.8rem;color:#6b7280;margin-top:0.25rem;">
-            Recomendado: PNG/JPG pequeño (ideal &lt; 300 KB).
-          </div>
-          <button type="button" id="btnUploadLogo" class="btn-secondary" style="margin-top:0.6rem;">
-            Subir logo
-          </button>
-
-        </form>
+        <div class="small" style="margin-top:10px;">
+          Consejo anti-caché: si GitHub Pages te muestra una versión vieja, probá incógnito o borrá datos del sitio. Si tenés service worker, puede estar sirviendo assets antiguos.
+        </div>
       </section>
-    </main>
-
-    <!-- FOOTER -->
-    <footer id="appFooter">
-      © <span id="footerYear"></span> Ofrendas Analytics · Creado por
-      <a href="https://www.linkedin.com/in/jeffrey-trigueros-371191123/"
-         target="_blank" rel="noopener noreferrer">
-        Jeffrey Trigueros
-      </a>
-      <br>
-      <span style="font-size:0.78rem;">
-        ¿Querés esta aplicación para tu iglesia?
-        <a href="https://wa.me/50660228322" target="_blank" rel="noopener noreferrer">
-          Contáctame por WhatsApp
-        </a>.
-      </span>
-    </footer>
+    </div>
   </div>
 
-  <script>
-    const SCRIPT_URL =
-      "https://script.google.com/macros/s/AKfycby96ZQNDZLSIwCWH_Ef8QAQiHrBzV2hIXaxzsVweA6-gR7_YrrVfss4YeH634fRHkeVqg/exec";
+<script>
+/**
+ * ============================
+ * CONFIG
+ * ============================
+ * Reemplazá esta URL por tu Apps Script Web App (doPost).
+ * Debe aceptar JSON con {action:"login"...} etc.
+ */
+const API_URL = "https://script.google.com/macros/s/AKfycbyEmE-nt_oYjtqUzH85ssGZtaEcuZnWIGsLoJDNG__xfPdh4gbWHYKZauSP6Q3hAMKX/exec";
 
-    // Año dinámico en el footer
-    document.getElementById("footerYear").textContent = new Date().getFullYear();
+/**
+ * ============================
+ * HELPERS UI
+ * ============================
+ */
+function $(id){ return document.getElementById(id); }
 
-    // Navegación entre "pantallas"
-    function navigateTo(screenId) {
-      const screens = document.querySelectorAll(".screen");
-      screens.forEach(s => s.classList.remove("active"));
-      const target = document.getElementById(screenId);
-      if (target) {
-        target.classList.add("active");
-        document.querySelector(".app-main").scrollTop = 0;
-      }
+function showMsg(el, text, kind){
+  const box = typeof el === "string" ? $(el) : el;
+  box.classList.remove("ok","bad");
+  if(kind) box.classList.add(kind);
+  box.textContent = text || "";
+  box.style.display = text ? "block" : "none";
+}
+
+function setStatus(text){
+  $("statusText").textContent = text;
+}
+
+function moneyCRC(n){
+  const x = Number(n || 0);
+  return x.toLocaleString("es-CR", { style:"currency", currency:"CRC", maximumFractionDigits: 0 });
+}
+
+function fmtDate(d){
+  try{
+    const dt = (d instanceof Date) ? d : new Date(d);
+    if(isNaN(dt.getTime())) return "";
+    return dt.toISOString().slice(0,10);
+  }catch(_){ return ""; }
+}
+
+function todayISO(){
+  const now = new Date();
+  const tz = new Date(now.getTime() - now.getTimezoneOffset()*60000);
+  return tz.toISOString().slice(0,10);
+}
+
+function hardRefresh(){
+  // Recarga datos y re-renderiza
+  init();
+}
+
+/**
+ * ============================
+ * SESSION STORAGE
+ * ============================
+ */
+const LS = {
+  get token(){ return localStorage.getItem("ofr_token") || ""; },
+  set token(v){ localStorage.setItem("ofr_token", v||""); },
+
+  get usuario(){ return localStorage.getItem("ofr_usuario") || ""; },
+  set usuario(v){ localStorage.setItem("ofr_usuario", v||""); },
+
+  get iglesia(){ return localStorage.getItem("ofr_iglesia") || ""; },
+  set iglesia(v){ localStorage.setItem("ofr_iglesia", v||""); },
+
+  get acceso(){ return localStorage.getItem("ofr_acceso") || ""; },
+  set acceso(v){ localStorage.setItem("ofr_acceso", v||""); },
+
+  clear(){
+    localStorage.removeItem("ofr_token");
+    localStorage.removeItem("ofr_usuario");
+    localStorage.removeItem("ofr_iglesia");
+    localStorage.removeItem("ofr_acceso");
+  }
+};
+
+/**
+ * ============================
+ * API
+ * ============================
+ */
+async function api(payload){
+  if(!API_URL || API_URL.includes("PEGA_AQUI")){
+    throw new Error("Falta configurar API_URL en el HTML.");
+  }
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type":"application/json" },
+    body: JSON.stringify(payload || {})
+  });
+  const data = await res.json();
+  return data;
+}
+
+/**
+ * ============================
+ * AUTH
+ * ============================
+ */
+async function login(){
+  showMsg("loginMsg","",null);
+
+  const usuario = $("loginUser").value.trim();
+  const password = $("loginPass").value;
+
+  if(!usuario || !password){
+    showMsg("loginMsg","Escribí usuario y password.","bad");
+    return;
+  }
+
+  $("btnLogin").disabled = true;
+  try{
+    const r = await api({ action:"login", usuario, password });
+    if(!r.ok){
+      showMsg("loginMsg", r.error || "No se pudo iniciar sesión.", "bad");
+      return;
     }
 
-    // Registrar plugin de datalabels en Chart.js
-    Chart.register(ChartDataLabels);
+    // Guardar sesión
+    LS.token = r.token;
+    LS.usuario = r.usuario || usuario;
+    LS.iglesia = r.iglesia || "";
+    LS.acceso = (r.acceso || "viewer").toLowerCase();
 
-    // Elementos globales
-    const headerSubtitle   = document.getElementById("headerSubtitle");
-    const form             = document.getElementById("ofrendaForm");
-    const statusEl         = document.getElementById("status");
-    const conceptoSelect   = document.getElementById("conceptoSelect");
-    const asistenciaInput  = document.getElementById("asistencia");
-    const tipoGraficoSelect= document.getElementById("tipoGrafico");
-    const toggleSizeBtn    = document.getElementById("toggleSizeBtn");
-    const postSubmitActions= document.getElementById("postSubmitActions");
-    const graficoContainer = document.getElementById("graficoContainer");
-    const graficoCanvas    = document.getElementById("graficoCanvas");
-    const resumenTexto     = document.getElementById("resumenTexto");
-    const customLegendEl   = document.getElementById("customLegend");
+    showMsg("loginMsg","✅ Sesión iniciada.","ok");
+    await init();
+  }catch(err){
+    showMsg("loginMsg", String(err?.message || err), "bad");
+  }finally{
+    $("btnLogin").disabled = false;
+  }
+}
 
-    // Contacto
-    const contactForm   = document.getElementById("contactForm");
-    const contactStatus = document.getElementById("contactStatus");
+function logout(){
+  LS.clear();
+  location.reload();
+}
 
-    // Config
-    const configForm       = document.getElementById("configForm");
-    const configStatus     = document.getElementById("configStatus");
-    const cfgIglesiaInput  = document.getElementById("cfgIglesia");
-    const cfgServiciosList = document.getElementById("cfgServiciosList");
-    const btnAddServicio   = document.getElementById("btnAddServicio");
+function demoFill(){
+  $("loginUser").value = "userA@iglesia1.com";
+  $("loginPass").value = "1234";
+}
 
-    // Monto preview
-    const montoInput   = document.getElementById("monto");
-    const montoPreview = document.getElementById("montoPreview");
+/**
+ * ============================
+ * APP: INGRESOS
+ * ============================
+ */
+function clearForm(){
+  $("fecha").value = todayISO();
+  $("monto").value = "";
+  $("asistencia").value = "";
+  $("servicio").value = "";
+  $("notas").value = "";
+  showMsg("saveMsg","",null);
+}
 
-    let graficoChart   = null;
-    let expanded       = false;
-    let serviciosConfig = [];
+async function addIngreso(){
+  showMsg("saveMsg","",null);
 
-    //========================
-    // CONTACTO → WhatsApp
-    //========================
-    if (contactForm && contactStatus) {
-      contactForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const nombre  = (document.getElementById("contactNombre").value || "").trim();
-        const email   = (document.getElementById("contactEmail").value || "").trim();
-        const mensaje = (document.getElementById("contactMensaje").value || "").trim();
+  const token = LS.token;
+  if(!token){
+    showMsg("saveMsg","No autenticado.","bad");
+    return;
+  }
 
-        if (!mensaje) {
-          contactStatus.textContent = "⚠️ Escribí un mensaje antes de enviar.";
-          contactStatus.className = "status error";
-          return;
-        }
+  // UX gate (la seguridad real va en backend)
+  if(LS.acceso === "viewer"){
+    showMsg("saveMsg","Tu usuario no tiene permisos para guardar (viewer).","bad");
+    return;
+  }
 
-        contactStatus.textContent = "Abriendo WhatsApp...";
-        contactStatus.className = "status ok";
+  const monto = Number($("monto").value || 0);
+  const asistencia = Number($("asistencia").value || 0);
+  const servicio = $("servicio").value.trim();
+  const notas = $("notas").value.trim();
+  const fecha = $("fecha").value || todayISO();
 
-        let texto = "Contacto desde Ofrendas Analytics:%0A";
-        if (nombre) texto += "Nombre: " + encodeURIComponent(nombre) + "%0A";
-        if (email)  texto += "Email: " + encodeURIComponent(email) + "%0A";
-        texto += "%0AMensaje:%0A" + encodeURIComponent(mensaje);
+  if(!monto || monto <= 0){
+    showMsg("saveMsg","Monto inválido.","bad");
+    return;
+  }
 
-        const url = "https://wa.me/50660228322?text=" + texto;
-        window.open(url, "_blank");
-      });
-    }
-
-    //========================
-    // PREVIEW DEL MONTO
-    //========================
-    if (montoInput && montoPreview) {
-      montoInput.addEventListener("input", () => {
-        const raw = montoInput.value;
-        const num = parseInt(raw, 10);
-        if (isNaN(num)) {
-          montoPreview.textContent = "";
-          return;
-        }
-        montoPreview.textContent =
-          "Monto formateado: " + num.toLocaleString("es-CR");
-      });
-    }
-
-    //========================
-    // FORMULARIO OFRENDA
-    //========================
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      statusEl.textContent = "Enviando...";
-      statusEl.className = "status";
-      postSubmitActions.style.display = "none";
-      postSubmitActions.innerHTML = "";
-
-      const montoRaw = document.getElementById("monto").value;
-      const monto = parseInt(montoRaw, 10);
-
-      const servicioValue = conceptoSelect.value;
-      const asistenciaRaw = asistenciaInput.value;
-      const asistencia = asistenciaRaw ? parseInt(asistenciaRaw, 10) : "";
-      const notas = document.getElementById("notas").value;
-
-      if (isNaN(monto)) {
-        statusEl.textContent = "⚠️ El monto debe ser un número entero.";
-        statusEl.className = "status error";
-        return;
-      }
-
-      if (!servicioValue) {
-        statusEl.textContent = "⚠️ Seleccioná un servicio.";
-        statusEl.className = "status error";
-        return;
-      }
-
-      const params = new URLSearchParams({
-        monto: String(monto),
-        servicio: servicioValue,
-        asistencia: asistencia,
-        notas: notas,
-      });
-
-      try {
-        await fetch(`${SCRIPT_URL}?${params.toString()}`, {
-          method: "GET",
-          mode: "no-cors",
-        });
-
-        statusEl.textContent = "✅ Ofrenda registrada.";
-        statusEl.className = "status ok";
-        form.reset();
-        montoPreview.textContent = "";
-
-        // Si ya hay un servicio seleccionado en análisis, refrescar gráfico
-        const servicioActual = tipoGraficoSelect.value;
-        if (servicioActual) {
-          cargarYMostrarGrafico(servicioActual);
-        }
-
-        // Preguntar qué hacer después
-        postSubmitActions.style.display = "block";
-        postSubmitActions.innerHTML = `
-          ¿Qué deseás hacer ahora?<br>
-          <button type="button" class="btn-accion"
-            style="margin-top:0.4rem;width:auto;padding:0.45rem 0.9rem;margin-right:0.3rem;"
-            onclick="otraOfrenda()">
-            Ingresar otra
-          </button>
-          <button type="button" class="btn-accion"
-            style="margin-top:0.4rem;width:auto;padding:0.45rem 0.9rem;"
-            onclick="irAAnalisis()">
-            Ir a análisis
-          </button>
-        `;
-      } catch (err) {
-        statusEl.textContent = "❌ Error de conexión: " + err.toString();
-        statusEl.className = "status error";
-      }
+  try{
+    const r = await api({
+      action:"addIngreso",
+      token,
+      fecha,
+      monto,
+      asistencia,
+      servicio,
+      notas
     });
 
-    function otraOfrenda() {
-      form.reset();
-      statusEl.textContent = "";
-      statusEl.className = "status";
-      montoPreview.textContent = "";
-      postSubmitActions.style.display = "none";
-      postSubmitActions.innerHTML = "";
-      const montoField = document.getElementById("monto");
-      if (montoField) montoField.focus();
+    if(!r.ok){
+      showMsg("saveMsg", r.error || "No se pudo guardar.", "bad");
+      return;
     }
 
-    function irAAnalisis() {
-      postSubmitActions.style.display = "none";
-      postSubmitActions.innerHTML = "";
-      statusEl.textContent = "";
-      statusEl.className = "status";
-      navigateTo("screen-analisis");
+    showMsg("saveMsg","✅ Guardado.", "ok");
+    clearForm();
+    await loadIngresos();
+  }catch(err){
+    showMsg("saveMsg", String(err?.message || err), "bad");
+  }
+}
+
+async function loadIngresos(){
+  const token = LS.token;
+  if(!token){
+    $("tableInfo").textContent = "Iniciá sesión para ver datos.";
+    $("tblBody").innerHTML = `<tr><td colspan="6" class="muted">Iniciá sesión para ver datos.</td></tr>`;
+    return;
+  }
+
+  $("tableInfo").textContent = "Cargando…";
+
+  try{
+    const limit = Number($("limitSel").value || 100);
+    const r = await api({ action:"getIngresos", token, limit });
+
+    if(!r.ok){
+      $("tableInfo").textContent = "Sesión inválida o expirada.";
+      $("tblBody").innerHTML = `<tr><td colspan="6" class="muted">Sesión inválida o expirada.</td></tr>`;
+      // fuerza logout para evitar loops raros
+      setTimeout(()=>logout(), 600);
+      return;
     }
 
-    //========================
-    // COLORES POR SERVICIO
-    //========================
-    function getColorsForServicio(servicio) {
-      const s = (servicio || "").toLowerCase();
-      if (s.includes("oración")) {
-        return {
-          areaColor: "rgba(25, 118, 210, 0.35)",
-          borderColor: "rgba(25, 118, 210, 1)",
-        };
-      }
-      if (s.includes("principal")) {
-        return {
-          areaColor: "rgba(239, 108, 0, 0.35)",
-          borderColor: "rgba(239, 108, 0, 1)",
-        };
-      }
-      if (s.includes("jóvenes") || s.includes("jovenes")) {
-        return {
-          areaColor: "rgba(76, 175, 80, 0.25)",
-          borderColor: "rgba(56, 142, 60, 1)",
-        };
-      }
-      // Default gris suave
-      return {
-        areaColor: "rgba(156, 163, 175, 0.3)",
-        borderColor: "rgba(107, 114, 128, 1)",
-      };
-    }
+    const rows = Array.isArray(r.rows) ? r.rows : [];
+    $("tableInfo").textContent = `Mostrando ${rows.length} filas · Iglesia: ${r.iglesia || LS.iglesia}`;
 
-    const asistenciaColor = "rgba(46, 125, 50, 1)";
+    // Tu hoja: Usuario | Iglesia | Fecha | Monto | Asistencia | Servicio | Notas
+    const body = rows.map(row=>{
+      const usuario = row[0] ?? "";
+      const iglesia = row[1] ?? "";
+      const fecha = fmtDate(row[2]);
+      const monto = moneyCRC(row[3]);
+      const asis = Number(row[4] ?? 0).toLocaleString("es-CR");
+      const servicio = row[5] ?? "";
+      const notas = row[6] ?? "";
+      return `
+        <tr>
+          <td class="nowrap">${fecha}</td>
+          <td class="right nowrap">${monto}</td>
+          <td class="right nowrap">${asis}</td>
+          <td>${escapeHtml(servicio)}</td>
+          <td>${escapeHtml(notas)}</td>
+          <td class="nowrap">${escapeHtml(usuario)}</td>
+        </tr>
+      `;
+    }).join("");
 
-    // Helper: formatear fecha para el eje X
-    function formatearFechaLabel(raw) {
-      const d = new Date(raw);
-      if (!isNaN(d.getTime())) {
-        return d.toLocaleDateString("es-CR", {
-          day: "2-digit",
-          month: "2-digit",
-        });
-      }
-      return String(raw);
-    }
+    $("tblBody").innerHTML = body || `<tr><td colspan="6" class="muted">No hay datos todavía.</td></tr>`;
 
-    //========================
-    // GRÁFICO
-    //========================
-    async function cargarYMostrarGrafico(servicio) {
-      if (!servicio) {
-        graficoContainer.style.display = "none";
-        return;
-      }
+  }catch(err){
+    $("tableInfo").textContent = "Error cargando datos.";
+    $("tblBody").innerHTML = `<tr><td colspan="6" class="muted">${escapeHtml(String(err?.message || err))}</td></tr>`;
+  }
+}
 
-      try {
-        const cfgColors = getColorsForServicio(servicio);
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#39;");
+}
 
-        graficoContainer.style.display = "block";
-        resumenTexto.textContent = "Cargando gráfico...";
-        customLegendEl.textContent = "";
-        statusEl.textContent = "";
-        statusEl.className = "status";
+/**
+ * ============================
+ * INIT
+ * ============================
+ */
+async function init(){
+  // Defaults
+  if(!$("fecha").value) $("fecha").value = todayISO();
 
-        const url = `${SCRIPT_URL}?mode=chart&servicio=${encodeURIComponent(servicio)}`;
-        const res = await fetch(url);
-        if (!res.ok) {
-          throw new Error("HTTP " + res.status);
-        }
+  const hasSession = !!LS.token;
 
-        const data = await res.json();
-        let rows = data.rows || [];
+  if(!hasSession){
+    setStatus("No autenticado");
+    $("sessionBox").textContent = "Todavía no hay sesión.";
+    $("whoUser").textContent = "—";
+    $("whoChurch").textContent = "—";
+    $("whoRole").textContent = "—";
+    $("badgeWho").classList.add("hide");
+    $("formIngresoWrap").classList.remove("hide"); // lo dejamos visible, pero no guarda sin sesión
+    await loadIngresos();
+    return;
+  }
 
-        rows = rows.filter(
-          (r) => r && r[0] !== "" && r[1] !== "" && r[1] != null
-        );
+  // Authenticated
+  setStatus("Autenticado");
+  $("badgeWho").classList.remove("hide");
 
-        if (!rows.length) {
-          statusEl.textContent = "⚠️ No hay datos para este servicio.";
-          statusEl.className = "status error";
-          graficoContainer.style.display = "none";
-          return;
-        }
+  $("whoUser").textContent = LS.usuario || "—";
+  $("whoChurch").textContent = LS.iglesia || "—";
+  $("whoRole").textContent = LS.acceso || "viewer";
 
-        const labels = rows.map((r) => formatearFechaLabel(r[0]));
-        const valoresMonto = rows.map((r) => Number(r[1]) || 0);
-        const valoresAsistencia = rows.map((r) =>
-          r.length > 2 ? Number(r[2]) || 0 : 0
-        );
+  $("sessionBox").innerHTML = `
+    <div class="small">Token: <span class="mono">${escapeHtml(LS.token.slice(0, 10))}…</span></div>
+    <div class="small">Usuario: <strong>${escapeHtml(LS.usuario)}</strong></div>
+    <div class="small">Iglesia: <strong>${escapeHtml(LS.iglesia)}</strong></div>
+    <div class="small">Acceso: <strong>${escapeHtml(LS.acceso)}</strong></div>
+  `;
 
-        if (graficoChart) {
-          graficoChart.destroy();
-        }
+  // UX: ocultar formulario si viewer
+  if((LS.acceso || "viewer") === "viewer"){
+    $("formIngresoWrap").classList.add("hide");
+  }else{
+    $("formIngresoWrap").classList.remove("hide");
+  }
 
-        const ctx = graficoCanvas.getContext("2d");
+  await loadIngresos();
+}
 
-        graficoChart = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels,
-            datasets: [
-              {
-                label: "Ofrendas (₡)",
-                data: valoresMonto,
-                borderColor: cfgColors.borderColor,
-                backgroundColor: cfgColors.areaColor,
-                borderWidth: 2,
-                fill: true,
-                stepped: "middle",
-                yAxisID: "y",
-                tension: 0,
-                datalabels: {
-                  anchor: "end",
-                  align: "top",
-                  formatter: (value) => {
-                    if (!value) return "";
-                    return new Intl.NumberFormat("es-CR", {
-                      maximumFractionDigits: 0,
-                    }).format(value);
-                  },
-                },
-              },
-              {
-                label: "Asistencia",
-                data: valoresAsistencia,
-                borderColor: asistenciaColor,
-                backgroundColor: "transparent",
-                borderWidth: 2,
-                fill: false,
-                yAxisID: "y1",
-                tension: 0.2,
-                pointRadius: 3,
-                datalabels: {
-                  anchor: "end",
-                  align: "bottom",
-                  formatter: (value) => (value ? value : ""),
-                },
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              datalabels: {
-                color: "#111827",
-                font: {
-                  size: 9,
-                },
-                clamp: true,
-                clip: true,
-              },
-              legend: {
-                display: false,
-              },
-              title: {
-                display: true,
-                text: servicio,
-              },
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                position: "left",
-                title: {
-                  display: true,
-                  text: "Ofrendas (₡)",
-                },
-              },
-              y1: {
-                beginAtZero: true,
-                position: "right",
-                grid: {
-                  drawOnChartArea: false,
-                },
-                title: {
-                  display: true,
-                  text: "Asistencia",
-                },
-              },
-            },
-          },
-        });
-
-        customLegendEl.innerHTML = `
-          <div style="margin-bottom:4px;">
-            <span style="display:inline-block;width:14px;height:10px;background:${cfgColors.areaColor};border:2px solid ${cfgColors.borderColor};border-radius:2px;margin-right:4px;"></span>
-            Ofrendas (área escalonada)
-          </div>
-          <div>
-            <span style="display:inline-block;width:14px;height:0;border-top:2px solid ${asistenciaColor};margin-right:4px;position:relative;top:-2px;"></span>
-            Asistencia (línea verde)
-          </div>
-        `;
-
-        const sumMonto = valoresMonto.reduce((a, b) => a + b, 0);
-        const avgMonto = sumMonto / valoresMonto.length;
-
-        const sumAsist = valoresAsistencia.reduce((a, b) => a + b, 0);
-        const validAsist = valoresAsistencia.filter((v) => v > 0);
-        const avgAsist =
-          validAsist.length > 0 ? sumAsist / validAsist.length : 0;
-
-        const first = valoresMonto[0];
-        const last = valoresMonto[valoresMonto.length - 1];
-        let tendencia = "estable";
-        if (last > first * 1.1) tendencia = "al alza";
-        else if (last < first * 0.9) tendencia = "a la baja";
-
-        const formatterCRC = new Intl.NumberFormat("es-CR", {
-          style: "currency",
-          currency: "CRC",
-          maximumFractionDigits: 0,
-        });
-
-        const lineaPromedio =
-          `Promedio de ofrendas por servicio: ${formatterCRC.format(
-            avgMonto || 0
-          )}.`;
-        const lineaAsistencia = validAsist.length
-          ? `Asistencia promedio: ${avgAsist.toFixed(0)} personas.`
-          : `Asistencia promedio: sin datos suficientes.`;
-        const lineaTendencia = `Tendencia de las ofrendas: ${tendencia}.`;
-
-        resumenTexto.innerHTML =
-          lineaPromedio + "<br>" + lineaAsistencia + "<br>" + lineaTendencia;
-
-        statusEl.textContent = "";
-        statusEl.className = "status";
-      } catch (err) {
-        statusEl.textContent = "❌ Error cargando gráfico: " + err.toString();
-        statusEl.className = "status error";
-        graficoContainer.style.display = "none";
-      }
-    }
-
-    // Dropdown análisis → dispara gráfico
-    tipoGraficoSelect.addEventListener("change", () => {
-      const servicio = tipoGraficoSelect.value;
-      cargarYMostrarGrafico(servicio);
-    });
-
-    // Botón ampliar/reducir gráfico
-    toggleSizeBtn.addEventListener("click", () => {
-      expanded = !expanded;
-      if (expanded) {
-        graficoContainer.classList.add("expanded-chart");
-        toggleSizeBtn.textContent = "Reducir gráfico";
-      } else {
-        graficoContainer.classList.remove("expanded-chart");
-        toggleSizeBtn.textContent = "Ampliar gráfico";
-      }
-    });
-
-    //========================
-    // CONFIGURACIÓN (sheet Config)
-    //========================
-
-    const cfgLogoInput = document.getElementById("cfgLogo");
-    const btnUploadLogo = document.getElementById("btnUploadLogo");
-    
-    async function fileToDataURL(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-    
-    if (btnUploadLogo && cfgLogoInput) {
-      btnUploadLogo.addEventListener("click", async () => {
-        try {
-          const file = cfgLogoInput.files && cfgLogoInput.files[0];
-          if (!file) {
-            configStatus.textContent = "⚠️ Seleccioná una imagen primero.";
-            configStatus.className = "status error";
-            return;
-          }
-    
-          // límite razonable para evitar URLs gigantes
-          if (file.size > 500 * 1024) {
-            configStatus.textContent = "⚠️ El logo es muy pesado. Usá uno menor a 500 KB.";
-            configStatus.className = "status error";
-            return;
-          }
-    
-          configStatus.textContent = "Subiendo logo...";
-          configStatus.className = "status";
-    
-          const base64 = await fileToDataURL(file);
-    
-          const body = new URLSearchParams();
-          body.set("mode", "saveLogo");
-          body.set("filename", file.name);
-          body.set("base64", base64);
-    
-          const res = await fetch(SCRIPT_URL, { method: "POST", body });
-          const data = await res.json();
-    
-          if (!data.success) throw new Error(data.error || "No se pudo guardar el logo.");
-    
-          // aplicar inmediatamente
-          const bust = "v=" + Date.now();
-          document.getElementById("headerLogoImg").src =
-            data.logoUrl + (data.logoUrl.includes("?") ? "&" : "?") + bust;
-    
-          configStatus.textContent = "✅ Logo actualizado.";
-          configStatus.className = "status ok";
-    
-          // refrescar config (para que quede consistente)
-          await loadConfig();
-    
-        } catch (err) {
-          configStatus.textContent = "❌ Error subiendo logo: " + err.message;
-          configStatus.className = "status error";
-        }
-      });
-    }
-
-    
-    function renderServiciosInputs(servicios) {
-      cfgServiciosList.innerHTML = "";
-      const list = servicios && servicios.length ? servicios : [
-        "Culto Principal",
-        "Culto de Oración",
-        "Culto de Jóvenes",
-        "Otros",
-      ];
-      list.forEach(nombre => addServicioRow(nombre));
-    }
-
-    function addServicioRow(nombre = "") {
-      if (cfgServiciosList.children.length >= 10) return;
-      const row = document.createElement("div");
-      row.className = "cfg-servicio-row";
-
-      const input = document.createElement("input");
-      input.type = "text";
-      input.placeholder = "Nombre de servicio";
-      input.value = nombre;
-
-      const btnDel = document.createElement("button");
-      btnDel.type = "button";
-      btnDel.textContent = "✕";
-      btnDel.className = "btn-secondary";
-      btnDel.style.marginTop = "0";
-      btnDel.style.padding = "0.25rem 0.6rem";
-      btnDel.style.fontSize = "0.78rem";
-
-      btnDel.addEventListener("click", () => {
-        cfgServiciosList.removeChild(row);
-      });
-
-      row.appendChild(input);
-      row.appendChild(btnDel);
-      cfgServiciosList.appendChild(row);
-    }
-
-    if (btnAddServicio) {
-      btnAddServicio.addEventListener("click", () => {
-        addServicioRow("");
-      });
-    }
-
-    if (configForm && configStatus) {
-      configForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        configStatus.textContent = "Guardando configuración...";
-        configStatus.className = "status";
-
-        const iglesia = (cfgIglesiaInput.value || "").trim();
-
-        const servicios = [];
-        const rows = cfgServiciosList.querySelectorAll(".cfg-servicio-row input");
-        rows.forEach(inp => {
-          const val = (inp.value || "").trim();
-          if (val) servicios.push(val);
-        });
-
-        try {
-          const body = new URLSearchParams();
-          body.set("mode", "saveConfig");
-          body.set("iglesia", iglesia);
-          body.set("servicios", JSON.stringify(servicios));
-          
-          const res = await fetch(SCRIPT_URL, {
-            method: "POST",
-            body
-          });
-          
-          if (!res.ok) throw new Error("HTTP " + res.status);
-
-          configStatus.textContent = "✅ Configuración guardada.";
-          configStatus.className = "status ok";
-
-          // Refrescar configuración actual en la app
-          await loadConfig();
-        } catch (err) {
-          configStatus.textContent = "❌ Error guardando configuración: " + err.toString();
-          configStatus.className = "status error";
-        }
-      });
-    }
-
-    function fillServicioSelects() {
-      const servicios = serviciosConfig && serviciosConfig.length
-        ? serviciosConfig
-        : [
-            "Culto Principal",
-            "Culto de Oración",
-            "Culto de Jóvenes",
-            "Otros",
-          ];
-
-      // Ingreso
-      conceptoSelect.innerHTML = "";
-      const optPlaceholder1 = document.createElement("option");
-      optPlaceholder1.value = "";
-      optPlaceholder1.disabled = true;
-      optPlaceholder1.selected = true;
-      optPlaceholder1.textContent = "Seleccioná un servicio";
-      conceptoSelect.appendChild(optPlaceholder1);
-
-      servicios.forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = s;
-        opt.textContent = s;
-        conceptoSelect.appendChild(opt);
-      });
-
-      // Análisis
-      tipoGraficoSelect.innerHTML = "";
-      const optPlaceholder2 = document.createElement("option");
-      optPlaceholder2.value = "";
-      optPlaceholder2.selected = true;
-      optPlaceholder2.textContent = "Seleccioná un servicio";
-      tipoGraficoSelect.appendChild(optPlaceholder2);
-
-      servicios.forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = s;
-        opt.textContent = s;
-        tipoGraficoSelect.appendChild(opt);
-      });
-    }
-
-    async function loadConfig() {
-      try {
-        const res = await fetch(`${SCRIPT_URL}?mode=getConfig`);
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-
-        const iglesia = (data.iglesia || "Casa de Oración").trim();
-        const servicios = Array.isArray(data.servicios) ? data.servicios : [];
-
-        serviciosConfig = servicios;
-        headerSubtitle.textContent = iglesia + " · Módulo de Ofrendas";
-
-        // Rellenar selects
-        fillServicioSelects();
-
-        // Rellenar pantalla de Config
-        cfgIglesiaInput.value = iglesia;
-        renderServiciosInputs(servicios);
-      } catch (err) {
-        console.log("Error cargando configuración:", err);
-        // fallback
-        headerSubtitle.textContent = "Casa de Oración · Módulo de Ofrendas";
-        serviciosConfig = [
-          "Culto Principal",
-          "Culto de Oración",
-          "Culto de Jóvenes",
-          "Otros",
-        ];
-        fillServicioSelects();
-        renderServiciosInputs(serviciosConfig);
-      }
-      const logo = (data.logoUrl || "").trim();
-      if (logo) {
-        const bust = "v=" + Date.now();
-        document.getElementById("appLogo").src = logo + (logo.includes("?") ? "&" : "?") + bust;
-      } else {
-        // fallback al logo del repo si no hay logo configurado
-        document.getElementById("appLogo").src = "CasaDeOracionLogo.jpg";
-      }
-    }
-
-    // Cargar configuración al inicio
-    document.addEventListener("DOMContentLoaded", () => {
-      loadConfig();
-    });
-  </script>
+init();
+</script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
