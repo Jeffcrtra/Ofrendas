@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>12.0 Ofrendas Analytics</title>
+  <title>12.06 Ofrendas Analytics</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -51,31 +51,34 @@
       justify-content:space-between;
       border-bottom:1px solid var(--line);
       background:linear-gradient(180deg, var(--soft2), #fff);
+      gap:12px;
     }
-    .head-left{display:flex; gap:12px; align-items:center;}
+    .head-left{display:flex; gap:12px; align-items:center; min-width:0;}
     .logo{
       width:44px; height:44px; border-radius:12px;
       background: var(--soft);
       display:flex; align-items:center; justify-content:center;
-      font-weight:800;
+      font-weight:900;
       border:1px solid var(--line);
+      flex:0 0 auto;
     }
-    .titles{display:flex; flex-direction:column; gap:2px;}
-    .titles .h1{font-weight:800; font-size:16px; line-height:1;}
-    .titles .h2{color:var(--muted); font-size:12px;}
+    .titles{display:flex; flex-direction:column; gap:2px; min-width:0;}
+    .titles .h1{font-weight:900; font-size:16px; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .titles .h2{color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
     .iconbtn{
       width:40px; height:40px; border-radius:12px;
       border:1px solid var(--line);
       background:#fff;
       cursor:pointer;
       font-size:18px;
+      flex:0 0 auto;
     }
     main{padding:18px;}
     .hide{display:none !important;}
 
-    /* Cards */
-    .q{font-size:18px; font-weight:800; margin:8px 0 6px;}
-    .p{color:var(--muted); margin:0 0 16px; font-size:13px; line-height:1.4;}
+    .q{font-size:18px; font-weight:900; margin:8px 0 6px;}
+    .p{color:var(--muted); margin:0 0 16px; font-size:13px; line-height:1.4}
+
     .card{
       border:1px solid var(--line);
       background:#fff;
@@ -99,11 +102,10 @@
       font-size:18px;
     }
     .ctxt{display:flex; flex-direction:column; gap:3px;}
-    .ctxt .t{font-weight:800; font-size:14px;}
+    .ctxt .t{font-weight:900; font-size:14px;}
     .ctxt .d{color:var(--muted); font-size:12px;}
     .chev{color:var(--muted); font-size:18px;}
 
-    /* Login */
     .loginwrap{
       max-width:420px;
       margin: 10px auto;
@@ -113,7 +115,7 @@
       background: #fff;
     }
     label{display:block; font-size:12px; color:var(--muted); margin:12px 0 6px;}
-    input{
+    input, select, textarea{
       width:100%;
       padding:12px 12px;
       border:1px solid var(--line);
@@ -122,6 +124,7 @@
       outline:none;
       background:#fff;
     }
+    textarea{min-height:92px; resize:vertical;}
     .btn{
       width:100%;
       margin-top:12px;
@@ -131,9 +134,21 @@
       cursor:pointer;
       background: var(--btn);
       color:#fff;
-      font-weight:800;
+      font-weight:900;
       font-size:14px;
     }
+    .btn.secondary{
+      background:#fff;
+      border:1px solid var(--line);
+      color:var(--ink);
+    }
+    .btnrow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+    .btnrow .btn{width:auto; min-width:160px; margin-top:0;}
     .msg{
       margin-top:10px;
       font-size:13px;
@@ -146,6 +161,61 @@
     .msg.ok{border-color: rgba(16,185,129,.35); background: rgba(16,185,129,.10); color:#065f46;}
     .msg.bad{border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.10); color:#7f1d1d;}
 
+    .grid2{display:grid; grid-template-columns:1fr; gap:10px;}
+    @media(min-width:740px){ .grid2{grid-template-columns:1fr 1fr;} }
+    .grid3{display:grid; grid-template-columns:1fr; gap:10px;}
+    @media(min-width:860px){ .grid3{grid-template-columns:1fr 1fr 1fr;} }
+
+    .panel{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      background:#fff;
+      margin-top:10px;
+    }
+    .kpis{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+    @media(min-width:740px){ .kpis{grid-template-columns:1fr 1fr 1fr;} }
+    .kpi{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:12px;
+      background: linear-gradient(180deg, var(--soft2), #fff);
+    }
+    .kpi .k{color:var(--muted); font-size:12px;}
+    .kpi .v{font-weight:900; font-size:18px; margin-top:6px;}
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      border:1px solid var(--line);
+      border-radius: 14px;
+      overflow:hidden;
+      background:#fff;
+    }
+    th, td{
+      padding:10px 10px;
+      font-size:13px;
+      border-bottom:1px solid var(--line);
+      vertical-align: top;
+      text-align:left;
+    }
+    th{background: var(--soft2); color:var(--muted); font-weight:900;}
+    tr:last-child td{border-bottom:0;}
+    .right{text-align:right;}
+    .small{color:var(--muted); font-size:12px;}
+    .rowTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+
     footer{
       margin-top:auto;
       padding:12px 18px;
@@ -156,11 +226,6 @@
       background:linear-gradient(180deg, #fff, var(--soft2));
     }
     a{color:#2563eb; text-decoration:none;}
-    .topmeta{
-      color:var(--muted);
-      font-size:12px;
-      margin-top:6px;
-    }
   </style>
 </head>
 
@@ -171,7 +236,7 @@
         <div class="logo">OA</div>
         <div class="titles">
           <div class="h1">Ofrendas Analytics</div>
-          <div class="h2" id="subtitle">—</div>
+          <div class="h2" id="subtitle">Acceso · Módulo de Ofrendas</div>
         </div>
       </div>
       <button class="iconbtn" id="menuBtn" onclick="openMenu()" aria-label="Menú">≡</button>
@@ -193,11 +258,13 @@
           <button class="btn" id="btnLogin" onclick="login()">Entrar</button>
           <div class="msg" id="loginMsg"></div>
 
-          <div class="topmeta">Tip: si GitHub Pages te muestra versión vieja, probá incógnito.</div>
+          <div class="small" style="margin-top:10px;">
+            Si GitHub Pages te muestra una versión vieja: probá incógnito o borrá “datos del sitio”. Si hay service worker, puede cachear.
+          </div>
         </div>
       </section>
 
-      <!-- SCREEN: HOME (solo con sesión) -->
+      <!-- SCREEN: HOME -->
       <section id="screen-home" class="hide">
         <div class="q">¿Qué deseás hacer hoy?</div>
         <p class="p">Registrá las ofrendas del servicio o revisá el análisis histórico de montos y asistencia.</p>
@@ -234,39 +301,209 @@
           </div>
           <div class="chev">›</div>
         </div>
+
+        <div class="panel">
+          <div class="small" id="whoLine">—</div>
+        </div>
       </section>
 
-      <!-- Placeholder screens -->
+      <!-- SCREEN: INGRESAR -->
       <section id="screen-ingresar" class="hide">
-        <div class="q">Ingresar Ofrenda</div>
-        <p class="p">Aquí va el formulario (lo conectamos después). Por ahora el flujo Login→Home ya quedó.</p>
-        <button class="btn" style="max-width:220px;" onclick="go('home')">Volver</button>
+        <div class="rowTop">
+          <div>
+            <div class="q">Ingresar Ofrenda</div>
+            <p class="p" style="margin-bottom:0;">Esto guarda en la hoja <strong>Ingresos</strong> usando la <strong>Iglesia</strong> de tu sesión.</p>
+          </div>
+          <button class="btn secondary" style="min-width:160px;" onclick="go('home')">Volver</button>
+        </div>
+
+        <div class="panel">
+          <div class="grid3">
+            <div>
+              <label for="fecha">Fecha</label>
+              <input id="fecha" type="date"/>
+            </div>
+            <div>
+              <label for="monto">Monto (₡)</label>
+              <input id="monto" type="number" inputmode="decimal" placeholder="0"/>
+            </div>
+            <div>
+              <label for="asistencia">Asistencia</label>
+              <input id="asistencia" type="number" inputmode="numeric" placeholder="0"/>
+            </div>
+          </div>
+
+          <div class="grid2" style="margin-top:10px;">
+            <div>
+              <label for="servicio">Servicio</label>
+              <input id="servicio" placeholder="Ej: Domingo AM"/>
+            </div>
+            <div>
+              <label for="notas">Notas</label>
+              <input id="notas" placeholder="Opcional"/>
+            </div>
+          </div>
+
+          <div class="btnrow">
+            <button class="btn" id="btnGuardar" onclick="addIngreso()">Guardar</button>
+            <button class="btn secondary" onclick="clearForm()">Limpiar</button>
+          </div>
+
+          <div class="msg" id="saveMsg"></div>
+        </div>
+
+        <div class="panel">
+          <div class="rowTop">
+            <div>
+              <div class="q" style="font-size:16px; margin:0;">Últimos ingresos</div>
+              <div class="small" id="lastInfo">—</div>
+            </div>
+            <button class="btn secondary" style="min-width:160px;" onclick="loadIngresos(30)">Recargar</button>
+          </div>
+
+          <div style="overflow:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th class="right">Monto</th>
+                  <th class="right">Asistencia</th>
+                  <th>Servicio</th>
+                  <th>Notas</th>
+                  <th>Usuario</th>
+                </tr>
+              </thead>
+              <tbody id="lastBody">
+                <tr><td colspan="6" class="small">Iniciá sesión para ver datos.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
+      <!-- SCREEN: ANALISIS -->
       <section id="screen-analisis" class="hide">
-        <div class="q">Ver Análisis</div>
-        <p class="p">Aquí va el dashboard (lo conectamos después). Por ahora el flujo Login→Home ya quedó.</p>
-        <button class="btn" style="max-width:220px;" onclick="go('home')">Volver</button>
+        <div class="rowTop">
+          <div>
+            <div class="q">Ver Análisis</div>
+            <p class="p" style="margin-bottom:0;">Resumen por servicio y tendencia reciente (solo tu iglesia).</p>
+          </div>
+          <button class="btn secondary" style="min-width:160px;" onclick="go('home')">Volver</button>
+        </div>
+
+        <div class="panel">
+          <div class="rowTop">
+            <div class="small" id="anaInfo">—</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <select id="anaWindow" onchange="refreshAnalisis()">
+                <option value="60">Últimos 60 registros</option>
+                <option value="120" selected>Últimos 120 registros</option>
+                <option value="200">Últimos 200 registros</option>
+                <option value="500">Últimos 500 registros</option>
+              </select>
+              <button class="btn secondary" style="min-width:160px;" onclick="refreshAnalisis()">Recargar</button>
+            </div>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi">
+              <div class="k">Total (ventana)</div>
+              <div class="v" id="kpiTotal">—</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Promedio por servicio</div>
+              <div class="v" id="kpiAvg">—</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Asistencia promedio</div>
+              <div class="v" id="kpiAsis">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="q" style="font-size:16px; margin:0;">Por servicio</div>
+          <div class="small" style="margin:6px 0 10px;">Agrupado por nombre de servicio (Domingo AM, Domingo PM, etc.).</div>
+
+          <div style="overflow:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Servicio</th>
+                  <th class="right">Registros</th>
+                  <th class="right">Total</th>
+                  <th class="right">Promedio</th>
+                  <th class="right">Asist. Prom.</th>
+                  <th class="right">Último</th>
+                </tr>
+              </thead>
+              <tbody id="svcBody">
+                <tr><td colspan="6" class="small">Cargando…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="q" style="font-size:16px; margin:0;">Tendencia reciente</div>
+          <div class="small" style="margin:6px 0 10px;">Últimos 10 registros (monto y asistencia). No es “AI”, es estadística humilde 😄</div>
+
+          <div style="overflow:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Servicio</th>
+                  <th class="right">Monto</th>
+                  <th class="right">Asistencia</th>
+                </tr>
+              </thead>
+              <tbody id="trendBody">
+                <tr><td colspan="4" class="small">Cargando…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
+      <!-- SCREEN: CONTACTO -->
       <section id="screen-contacto" class="hide">
-        <div class="q">Contacto y sugerencias</div>
-        <p class="p">Aquí va el formulario de contacto/sugerencias.</p>
-        <button class="btn" style="max-width:220px;" onclick="go('home')">Volver</button>
+        <div class="rowTop">
+          <div>
+            <div class="q">Contacto y sugerencias</div>
+            <p class="p" style="margin-bottom:0;">Mandanos mejoras, dudas o ideas futuras.</p>
+          </div>
+          <button class="btn secondary" style="min-width:160px;" onclick="go('home')">Volver</button>
+        </div>
+
+        <div class="panel">
+          <label for="msgText">Mensaje</label>
+          <textarea id="msgText" placeholder="Escribí tu sugerencia…"></textarea>
+
+          <div class="btnrow">
+            <button class="btn" onclick="sendContacto()">Enviar</button>
+            <button class="btn secondary" onclick="document.getElementById('msgText').value=''">Limpiar</button>
+          </div>
+
+          <div class="msg" id="contactMsg"></div>
+
+          <div class="small" style="margin-top:10px;">
+            Por ahora lo enviamos como “WhatsApp simulado”. Si querés, después lo guardamos en una hoja “Feedback”.
+          </div>
+        </div>
       </section>
     </main>
 
     <footer>
       © 2025 Ofrendas Analytics · Creado por Jeffrey Trigueros<br/>
-      ¿Querés esta aplicación para tu iglesia? <a href="#" onclick="alert('Luego lo conectamos a WhatsApp'); return false;">Contactame por WhatsApp</a>
+      ¿Querés esta aplicación para tu iglesia? <a href="#" onclick="fakeWhatsApp(); return false;">Contactame por WhatsApp</a>
     </footer>
   </div>
 
 <script>
-  // ✅ Tu Web App URL oficial (ya guardado en memoria, lo pegamos aquí):
+  // Tu Web App URL oficial:
   const API_URL = "https://script.google.com/macros/s/AKfycbyEmE-nt_oYjtqUzH85ssGZtaEcuZnWIGsLoJDNG__xfPdh4gbWHYKZauSP6Q3hAMKX/exec";
 
-  // Local session
   const LS = {
     get token(){ return localStorage.getItem("ofr_token") || ""; },
     set token(v){ localStorage.setItem("ofr_token", v||""); },
@@ -276,9 +513,7 @@
     set iglesia(v){ localStorage.setItem("ofr_iglesia", v||""); },
     get acceso(){ return localStorage.getItem("ofr_acceso") || ""; },
     set acceso(v){ localStorage.setItem("ofr_acceso", v||""); },
-    clear(){
-      ["ofr_token","ofr_usuario","ofr_iglesia","ofr_acceso"].forEach(k=>localStorage.removeItem(k));
-    }
+    clear(){ ["ofr_token","ofr_usuario","ofr_iglesia","ofr_acceso"].forEach(k=>localStorage.removeItem(k)); }
   };
 
   function $(id){ return document.getElementById(id); }
@@ -293,9 +528,7 @@
 
   function showScreen(name){
     const screens = ["login","home","ingresar","analisis","contacto"];
-    for(const s of screens){
-      $("screen-"+s).classList.toggle("hide", s !== name);
-    }
+    for(const s of screens) $("screen-"+s).classList.toggle("hide", s !== name);
   }
 
   function setSubtitle(){
@@ -307,6 +540,30 @@
     $("subtitle").textContent = `${ig} · Módulo de Ofrendas`;
   }
 
+  function moneyCRC(n){
+    const x = Number(n || 0);
+    return x.toLocaleString("es-CR", { style:"currency", currency:"CRC", maximumFractionDigits: 0 });
+  }
+
+  function numCR(n){
+    const x = Number(n || 0);
+    return x.toLocaleString("es-CR");
+  }
+
+  function todayISO(){
+    const now = new Date();
+    const tz = new Date(now.getTime() - now.getTimezoneOffset()*60000);
+    return tz.toISOString().slice(0,10);
+  }
+
+  function fmtDate(d){
+    try{
+      const dt = (d instanceof Date) ? d : new Date(d);
+      if(isNaN(dt.getTime())) return "";
+      return dt.toISOString().slice(0,10);
+    }catch(_){ return ""; }
+  }
+
   async function api(payload){
     const res = await fetch(API_URL, {
       method:"POST",
@@ -316,17 +573,15 @@
     return await res.json();
   }
 
-  // 🔒 Validar sesión “en serio” (opcional pero recomendado)
-  // Si tu backend no tiene action=whoami todavía, esto lo dejamos suave.
+  // --- Auth / session validation
   async function validateSession(){
     if(!LS.token) return false;
-    // Intentamos una llamada que requiera token (por ejemplo getIngresos limit 1)
     try{
+      // usamos getIngresos como "ping" porque requiere token
       const r = await api({ action:"getIngresos", token: LS.token, limit: 1 });
       if(!r.ok) return false;
-      // refrescar datos por si cambió acceso/iglesia
       LS.iglesia = r.iglesia || LS.iglesia;
-      LS.acceso = r.acceso || LS.acceso;
+      LS.acceso = (r.acceso || LS.acceso || "viewer").toLowerCase();
       return true;
     }catch(_){
       return false;
@@ -356,6 +611,7 @@
       LS.acceso = (r.acceso || "viewer").toLowerCase();
 
       setSubtitle();
+      $("whoLine").textContent = `👤 ${LS.usuario} · ⛪ ${LS.iglesia} · 🔐 ${LS.acceso}`;
       showScreen("home");
     }catch(err){
       showMsg("loginMsg", String(err?.message || err), "bad");
@@ -379,27 +635,279 @@
     const msg =
       `👤 ${LS.usuario}\n⛪ ${LS.iglesia}\n🔐 ${a}\n\n` +
       `Opciones:\n` +
-      `1) Home\n2) Cerrar sesión`;
+      `1) Home\n2) Ingresar Ofrenda\n3) Ver Análisis\n4) Contacto\n5) Cerrar sesión`;
     const pick = prompt(msg, "1");
-    if(pick === "2") logout();
+    if(pick === "2") go("ingresar");
+    else if(pick === "3") go("analisis");
+    else if(pick === "4") go("contacto");
+    else if(pick === "5") logout();
     else showScreen("home");
   }
 
-  function go(where){
+  async function go(where){
     if(!LS.token){
       showScreen("login");
       return;
     }
-    // Gate por rol (ejemplo): viewer no puede ingresar ofrenda
+
+    // Gate UX (la seguridad real debe estar en backend también)
     if(where === "ingresar" && (LS.acceso || "viewer") === "viewer"){
       alert("Tu usuario no tiene permisos para ingresar ofrendas (viewer).");
       return;
     }
+
     showScreen(where);
+
+    if(where === "ingresar"){
+      if(!$("fecha").value) $("fecha").value = todayISO();
+      await loadIngresos(30);
+    }
+    if(where === "analisis"){
+      await refreshAnalisis();
+    }
   }
 
-  // INIT: la primera pantalla accesible es login
+  // --- Ingresar
+  function clearForm(){
+    $("fecha").value = todayISO();
+    $("monto").value = "";
+    $("asistencia").value = "";
+    $("servicio").value = "";
+    $("notas").value = "";
+    showMsg("saveMsg","",null);
+  }
+
+  async function addIngreso(){
+    showMsg("saveMsg","",null);
+
+    if(!LS.token){
+      showMsg("saveMsg","No autenticado.","bad");
+      return;
+    }
+    if((LS.acceso || "viewer") === "viewer"){
+      showMsg("saveMsg","Tu usuario no tiene permisos para guardar (viewer).","bad");
+      return;
+    }
+
+    const fecha = $("fecha").value || todayISO();
+    const monto = Number($("monto").value || 0);
+    const asistencia = Number($("asistencia").value || 0);
+    const servicio = ($("servicio").value || "").trim();
+    const notas = ($("notas").value || "").trim();
+
+    if(!monto || monto <= 0){
+      showMsg("saveMsg","Monto inválido.","bad");
+      return;
+    }
+
+    $("btnGuardar").disabled = true;
+    try{
+      const r = await api({ action:"addIngreso", token: LS.token, fecha, monto, asistencia, servicio, notas });
+      if(!r.ok){
+        showMsg("saveMsg", r.error || "No se pudo guardar.", "bad");
+        if(String(r.error||"").toLowerCase().includes("expir")){
+          logout();
+        }
+        return;
+      }
+      showMsg("saveMsg","✅ Guardado.", "ok");
+      clearForm();
+      await loadIngresos(30);
+    }catch(err){
+      showMsg("saveMsg", String(err?.message || err), "bad");
+    }finally{
+      $("btnGuardar").disabled = false;
+    }
+  }
+
+  async function loadIngresos(limit){
+    if(!LS.token){
+      $("lastInfo").textContent = "Iniciá sesión para ver datos.";
+      $("lastBody").innerHTML = `<tr><td colspan="6" class="small">Iniciá sesión para ver datos.</td></tr>`;
+      return;
+    }
+    $("lastInfo").textContent = "Cargando…";
+    try{
+      const r = await api({ action:"getIngresos", token: LS.token, limit: Number(limit||30) });
+      if(!r.ok){
+        $("lastInfo").textContent = "Sesión inválida/expirada.";
+        $("lastBody").innerHTML = `<tr><td colspan="6" class="small">Sesión inválida/expirada.</td></tr>`;
+        logout();
+        return;
+      }
+      // refrescar metadata
+      LS.iglesia = r.iglesia || LS.iglesia;
+      LS.acceso = (r.acceso || LS.acceso || "viewer").toLowerCase();
+      setSubtitle();
+      $("whoLine").textContent = `👤 ${LS.usuario} · ⛪ ${LS.iglesia} · 🔐 ${LS.acceso}`;
+
+      const rows = Array.isArray(r.rows) ? r.rows : [];
+      $("lastInfo").textContent = `Mostrando ${rows.length} · ${LS.iglesia}`;
+
+      // Orden esperado: Usuario | Iglesia | Fecha | Monto | Asistencia | Servicio | Notas
+      $("lastBody").innerHTML = rows.map(row=>{
+        const usuario = row[0] ?? "";
+        const fecha = fmtDate(row[2]);
+        const monto = moneyCRC(row[3]);
+        const asis = numCR(row[4] ?? 0);
+        const servicio = escapeHtml(row[5] ?? "");
+        const notas = escapeHtml(row[6] ?? "");
+        return `
+          <tr>
+            <td>${fecha}</td>
+            <td class="right">${monto}</td>
+            <td class="right">${asis}</td>
+            <td>${servicio}</td>
+            <td>${notas}</td>
+            <td>${escapeHtml(usuario)}</td>
+          </tr>
+        `;
+      }).join("") || `<tr><td colspan="6" class="small">No hay datos todavía.</td></tr>`;
+    }catch(err){
+      $("lastInfo").textContent = "Error cargando.";
+      $("lastBody").innerHTML = `<tr><td colspan="6" class="small">${escapeHtml(String(err?.message || err))}</td></tr>`;
+    }
+  }
+
+  // --- Análisis
+  async function refreshAnalisis(){
+    if(!LS.token){
+      $("anaInfo").textContent = "Iniciá sesión para ver análisis.";
+      $("svcBody").innerHTML = `<tr><td colspan="6" class="small">Iniciá sesión para ver análisis.</td></tr>`;
+      $("trendBody").innerHTML = `<tr><td colspan="4" class="small">Iniciá sesión para ver análisis.</td></tr>`;
+      return;
+    }
+    $("anaInfo").textContent = "Cargando…";
+    $("svcBody").innerHTML = `<tr><td colspan="6" class="small">Cargando…</td></tr>`;
+    $("trendBody").innerHTML = `<tr><td colspan="4" class="small">Cargando…</td></tr>`;
+
+    const windowN = Number($("anaWindow").value || 120);
+
+    try{
+      const r = await api({ action:"getIngresos", token: LS.token, limit: windowN });
+      if(!r.ok){
+        $("anaInfo").textContent = "Sesión inválida/expirada.";
+        logout();
+        return;
+      }
+
+      LS.iglesia = r.iglesia || LS.iglesia;
+      LS.acceso = (r.acceso || LS.acceso || "viewer").toLowerCase();
+      setSubtitle();
+      $("whoLine").textContent = `👤 ${LS.usuario} · ⛪ ${LS.iglesia} · 🔐 ${LS.acceso}`;
+
+      const rows = Array.isArray(r.rows) ? r.rows : [];
+      $("anaInfo").textContent = `Ventana: ${rows.length} registros · Iglesia: ${LS.iglesia}`;
+
+      // KPIs globales
+      let total = 0;
+      let asisSum = 0;
+      for(const row of rows){
+        total += Number(row[3] || 0);
+        asisSum += Number(row[4] || 0);
+      }
+      const svcCount = new Set(rows.map(rw => String(rw[5] || "").trim() || "(Sin servicio)")).size || 1;
+
+      $("kpiTotal").textContent = moneyCRC(total);
+      $("kpiAvg").textContent = moneyCRC(rows.length ? (total / rows.length) : 0);
+      $("kpiAsis").textContent = numCR(rows.length ? (asisSum / rows.length) : 0);
+
+      // Agrupar por servicio
+      const map = new Map(); // servicio -> {count,total,asis,lastDate,lastAmount}
+      for(const row of rows){
+        const servicio = String(row[5] || "").trim() || "(Sin servicio)";
+        const monto = Number(row[3] || 0);
+        const asis = Number(row[4] || 0);
+        const date = new Date(row[2]);
+        const item = map.get(servicio) || {count:0,total:0,asis:0,lastDate:null,lastAmount:0};
+        item.count += 1;
+        item.total += monto;
+        item.asis += asis;
+        if(!item.lastDate || (date instanceof Date && date > item.lastDate)){
+          item.lastDate = date;
+          item.lastAmount = monto;
+        }
+        map.set(servicio, item);
+      }
+
+      // Sort por total desc
+      const svcRows = Array.from(map.entries())
+        .map(([servicio, it]) => ({
+          servicio,
+          count: it.count,
+          total: it.total,
+          avg: it.count ? it.total/it.count : 0,
+          asisAvg: it.count ? it.asis/it.count : 0,
+          last: it.lastAmount,
+          lastDate: it.lastDate
+        }))
+        .sort((a,b)=> b.total - a.total);
+
+      $("svcBody").innerHTML = svcRows.map(s=>{
+        return `
+          <tr>
+            <td>${escapeHtml(s.servicio)}</td>
+            <td class="right">${numCR(s.count)}</td>
+            <td class="right">${moneyCRC(s.total)}</td>
+            <td class="right">${moneyCRC(s.avg)}</td>
+            <td class="right">${numCR(s.asisAvg)}</td>
+            <td class="right">${moneyCRC(s.last)}</td>
+          </tr>
+        `;
+      }).join("") || `<tr><td colspan="6" class="small">No hay datos suficientes.</td></tr>`;
+
+      // Tendencia: últimos 10 por fecha (asumiendo rows ya vienen ordenadas asc; si no, ordenamos)
+      const trend = [...rows].sort((a,b)=> new Date(a[2]) - new Date(b[2])).slice(-10);
+      $("trendBody").innerHTML = trend.map(row=>{
+        return `
+          <tr>
+            <td>${fmtDate(row[2])}</td>
+            <td>${escapeHtml(String(row[5]||"").trim() || "(Sin servicio)")}</td>
+            <td class="right">${moneyCRC(row[3])}</td>
+            <td class="right">${numCR(row[4] || 0)}</td>
+          </tr>
+        `;
+      }).join("") || `<tr><td colspan="4" class="small">No hay datos.</td></tr>`;
+
+    }catch(err){
+      $("anaInfo").textContent = "Error cargando análisis.";
+      $("svcBody").innerHTML = `<tr><td colspan="6" class="small">${escapeHtml(String(err?.message || err))}</td></tr>`;
+      $("trendBody").innerHTML = `<tr><td colspan="4" class="small">${escapeHtml(String(err?.message || err))}</td></tr>`;
+    }
+  }
+
+  // --- Contacto
+  function fakeWhatsApp(){
+    alert("Luego lo conectamos a WhatsApp (o guardamos feedback en una hoja).");
+  }
+  function sendContacto(){
+    showMsg("contactMsg","",null);
+    if(!LS.token){
+      showMsg("contactMsg","Tenés que iniciar sesión para enviar sugerencias.","bad");
+      return;
+    }
+    const text = ($("msgText").value || "").trim();
+    if(!text){
+      showMsg("contactMsg","Escribí un mensaje.","bad");
+      return;
+    }
+    // Por ahora: simulamos envío
+    showMsg("contactMsg","✅ Recibido. (Luego lo enviamos a una hoja 'Feedback' o WhatsApp).","ok");
+    $("msgText").value = "";
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#39;");
+  }
+
+  // INIT: primera accesible = login; si hay token, validamos y vamos a home
   (async function init(){
+    $("fecha").value = todayISO();
     setSubtitle();
     showScreen("login");
 
@@ -407,6 +915,7 @@
       const ok = await validateSession();
       if(ok){
         setSubtitle();
+        $("whoLine").textContent = `👤 ${LS.usuario} · ⛪ ${LS.iglesia} · 🔐 ${LS.acceso}`;
         showScreen("home");
       }else{
         LS.clear();
