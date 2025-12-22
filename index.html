@@ -1,681 +1,419 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>11.53 Ofrendas – Login</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>12.0 Ofrendas Analytics</title>
   <style>
     :root{
       --bg:#0b1220;
-      --card:#101a33;
-      --muted:#93a4c7;
-      --text:#e9efff;
-      --line:rgba(255,255,255,.10);
-      --btn:#2b63ff;
-      --btn2:#1b2a55;
-      --bad:#ff4d4d;
-      --ok:#2dd4bf;
-      --shadow:0 14px 40px rgba(0,0,0,.35);
+      --card:#ffffff;
+      --ink:#0b1220;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --shadow:0 16px 45px rgba(0,0,0,.18);
       --radius:18px;
-      --pad:16px;
+      --pad:18px;
+      --btn:#111827;
+      --soft:#f3f4f6;
+      --soft2:#f9fafb;
+      --ok:#10b981;
+      --bad:#ef4444;
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", "Noto Sans";
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family:var(--font);
-      background: radial-gradient(1200px 700px at 20% 10%, rgba(43,99,255,.25), transparent 55%),
-                  radial-gradient(900px 600px at 80% 0%, rgba(45,212,191,.18), transparent 60%),
+      background: radial-gradient(1000px 600px at 20% 0%, rgba(59,130,246,.25), transparent 60%),
+                  radial-gradient(900px 600px at 80% 10%, rgba(16,185,129,.18), transparent 60%),
                   var(--bg);
-      color:var(--text);
       min-height:100vh;
       display:flex;
       justify-content:center;
       padding:22px;
+      color:var(--ink);
     }
-    .wrap{width:min(980px, 100%);}
-
+    .frame{
+      width:min(980px, 100%);
+      background:var(--card);
+      border-radius:26px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height: 86vh;
+    }
     header{
+      padding:16px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg, var(--soft2), #fff);
+    }
+    .head-left{display:flex; gap:12px; align-items:center;}
+    .logo{
+      width:44px; height:44px; border-radius:12px;
+      background: var(--soft);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:800;
+      border:1px solid var(--line);
+    }
+    .titles{display:flex; flex-direction:column; gap:2px;}
+    .titles .h1{font-weight:800; font-size:16px; line-height:1;}
+    .titles .h2{color:var(--muted); font-size:12px;}
+    .iconbtn{
+      width:40px; height:40px; border-radius:12px;
+      border:1px solid var(--line);
+      background:#fff;
+      cursor:pointer;
+      font-size:18px;
+    }
+    main{padding:18px;}
+    .hide{display:none !important;}
+
+    /* Cards */
+    .q{font-size:18px; font-weight:800; margin:8px 0 6px;}
+    .p{color:var(--muted); margin:0 0 16px; font-size:13px; line-height:1.4;}
+    .card{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:18px;
+      padding:14px 14px;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:12px;
-      padding: 10px 6px 18px 6px;
+      margin:12px 0;
+      cursor:pointer;
+      transition: transform .06s ease;
     }
-    .brand{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-    }
-    .brand h1{
-      margin:0;
-      font-size:18px;
-      letter-spacing:.2px;
-    }
-    .brand .sub{
-      color:var(--muted);
-      font-size:13px;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      background:rgba(255,255,255,.06);
+    .card:active{transform: translateY(1px);}
+    .card .left{display:flex; gap:12px; align-items:center;}
+    .ic{
+      width:40px; height:40px; border-radius:14px;
+      background: var(--soft);
       border:1px solid var(--line);
-      padding:8px 10px;
-      border-radius:999px;
-      font-size:12px;
-      color:var(--muted);
-      user-select:none;
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px;
     }
-    .pill strong{color:var(--text); font-weight:600;}
+    .ctxt{display:flex; flex-direction:column; gap:3px;}
+    .ctxt .t{font-weight:800; font-size:14px;}
+    .ctxt .d{color:var(--muted); font-size:12px;}
+    .chev{color:var(--muted); font-size:18px;}
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:16px;
+    /* Login */
+    .loginwrap{
+      max-width:420px;
+      margin: 10px auto;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      background: #fff;
     }
-    @media(min-width: 880px){
-      .grid{grid-template-columns: 360px 1fr;}
-    }
-
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: var(--pad);
-    }
-    .card h2{
-      margin:0 0 10px 0;
-      font-size:16px;
-    }
-    .muted{color:var(--muted); font-size:13px; line-height:1.4}
-
-    label{
-      display:block;
-      font-size:12px;
-      color:var(--muted);
-      margin:12px 0 6px;
-    }
-    input, textarea, select{
+    label{display:block; font-size:12px; color:var(--muted); margin:12px 0 6px;}
+    input{
       width:100%;
-      background: rgba(10,16,34,.55);
-      border: 1px solid var(--line);
-      color: var(--text);
-      border-radius: 14px;
-      padding: 11px 12px;
-      outline:none;
+      padding:12px 12px;
+      border:1px solid var(--line);
+      border-radius:14px;
       font-size:14px;
+      outline:none;
+      background:#fff;
     }
-    input::placeholder, textarea::placeholder{color:rgba(147,164,199,.75)}
-    textarea{min-height:84px; resize:vertical}
-    .row{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
-    .row3{
-      display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap:10px;
-    }
-    @media(max-width:520px){
-      .row, .row3{grid-template-columns: 1fr;}
-    }
-
-    .btns{
-      display:flex;
-      gap:10px;
-      margin-top:14px;
-      flex-wrap:wrap;
-    }
-    button{
+    .btn{
+      width:100%;
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:14px;
       border:0;
       cursor:pointer;
-      border-radius: 14px;
-      padding: 11px 14px;
-      font-weight:600;
+      background: var(--btn);
+      color:#fff;
+      font-weight:800;
       font-size:14px;
-      transition: transform .06s ease, filter .15s ease;
-      user-select:none;
     }
-    button:active{transform: translateY(1px);}
-    .primary{background: var(--btn); color:white;}
-    .secondary{background: rgba(255,255,255,.07); border:1px solid var(--line); color: var(--text);}
-    .ghost{background: transparent; border:1px dashed var(--line); color: var(--muted);}
-    .danger{background: rgba(255,77,77,.18); border:1px solid rgba(255,77,77,.35); color: #ffd0d0;}
-
     .msg{
       margin-top:10px;
       font-size:13px;
       padding:10px 12px;
-      border-radius: 14px;
+      border-radius:14px;
       border:1px solid var(--line);
-      background: rgba(255,255,255,.04);
       display:none;
+      background: var(--soft2);
     }
-    .msg.ok{border-color: rgba(45,212,191,.35); background: rgba(45,212,191,.10); color:#cafff6;}
-    .msg.bad{border-color: rgba(255,77,77,.35); background: rgba(255,77,77,.10); color:#ffd0d0;}
+    .msg.ok{border-color: rgba(16,185,129,.35); background: rgba(16,185,129,.10); color:#065f46;}
+    .msg.bad{border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.10); color:#7f1d1d;}
 
-    .toolbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-bottom:10px;
-    }
-
-    table{
-      width:100%;
-      border-collapse: collapse;
-      overflow:hidden;
-      border-radius: 14px;
-      border:1px solid var(--line);
-      background: rgba(10,16,34,.35);
-    }
-    th, td{
-      padding:10px 10px;
-      font-size:13px;
-      border-bottom: 1px solid rgba(255,255,255,.07);
-      vertical-align: top;
-    }
-    th{
-      text-align:left;
-      color: var(--muted);
-      font-weight:700;
-      background: rgba(255,255,255,.04);
-    }
-    tr:last-child td{border-bottom:0;}
-    .small{font-size:12px; color:var(--muted);}
-    .right{text-align:right;}
-    .nowrap{white-space:nowrap;}
-    .hide{display:none !important;}
-
-    .badge{
-      display:inline-flex;
-      gap:6px;
-      align-items:center;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.05);
+    footer{
+      margin-top:auto;
+      padding:12px 18px;
+      border-top:1px solid var(--line);
+      color:var(--muted);
       font-size:12px;
-      color: var(--muted);
+      text-align:center;
+      background:linear-gradient(180deg, #fff, var(--soft2));
     }
-    .badge strong{color:var(--text)}
-    .divider{
-      height:1px;
-      background: var(--line);
-      margin: 12px 0;
+    a{color:#2563eb; text-decoration:none;}
+    .topmeta{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:6px;
     }
-    .hint{
-      border-left: 3px solid rgba(43,99,255,.55);
-      padding-left:10px;
-      margin-top:10px;
-    }
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
   </style>
 </head>
 
 <body>
-  <div class="wrap">
+  <div class="frame">
     <header>
-      <div class="brand">
-        <h1>Ofrendas Analytics</h1>
-        <div class="sub">Login + registro de ingresos por iglesia (filtrado por usuario)</div>
+      <div class="head-left">
+        <div class="logo">OA</div>
+        <div class="titles">
+          <div class="h1">Ofrendas Analytics</div>
+          <div class="h2" id="subtitle">—</div>
+        </div>
       </div>
-      <div class="pill">
-        <span>Estado:</span>
-        <strong id="statusText">No autenticado</strong>
-      </div>
+      <button class="iconbtn" id="menuBtn" onclick="openMenu()" aria-label="Menú">≡</button>
     </header>
 
-    <div class="grid">
-      <!-- LEFT: LOGIN + USER INFO -->
-      <section class="card" id="cardAuth">
-        <h2>Iniciar sesión</h2>
-        <div class="muted">Usá tu usuario (por ahora puede ser string; más adelante será email) y password.</div>
+    <main>
+      <!-- SCREEN: LOGIN (única sin sesión) -->
+      <section id="screen-login">
+        <div class="loginwrap">
+          <div class="q" style="margin-top:0;">Iniciar sesión</div>
+          <p class="p" style="margin-bottom:8px;">Acceso restringido. Tu iglesia y permisos se cargan desde el sistema.</p>
 
-        <label for="loginUser">Usuario</label>
-        <input id="loginUser" placeholder="ej: jeff o jeff@mail.com" autocomplete="username" />
+          <label for="loginUser">Usuario</label>
+          <input id="loginUser" placeholder="ej: usuario o email" autocomplete="username"/>
 
-        <label for="loginPass">Password</label>
-        <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" />
+          <label for="loginPass">Password</label>
+          <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"/>
 
-        <div class="btns">
-          <button class="primary" id="btnLogin" onclick="login()">Entrar</button>
-          <button class="secondary" onclick="demoFill()">Llenar demo</button>
-        </div>
+          <button class="btn" id="btnLogin" onclick="login()">Entrar</button>
+          <div class="msg" id="loginMsg"></div>
 
-        <div class="msg" id="loginMsg"></div>
-
-        <div class="divider"></div>
-
-        <h2>Sesión</h2>
-        <div id="sessionBox" class="muted">Todavía no hay sesión.</div>
-
-        <div class="btns">
-          <button class="danger" onclick="logout()">Cerrar sesión</button>
-          <button class="ghost" onclick="hardRefresh()">Refrescar datos</button>
-        </div>
-
-        <div class="hint muted">
-          <div><strong>Importante:</strong> ocultar botones en el HTML es UX, no seguridad.</div>
-          <div>La seguridad real debe estar en el <span class="mono">Apps Script</span> (backend), validando permisos.</div>
+          <div class="topmeta">Tip: si GitHub Pages te muestra versión vieja, probá incógnito.</div>
         </div>
       </section>
 
-      <!-- RIGHT: APP -->
-      <section class="card" id="cardApp">
-        <div class="toolbar">
-          <div class="badge" id="badgeWho">
-            <span>👤</span> <strong id="whoUser">—</strong>
-            <span>· ⛪</span> <strong id="whoChurch">—</strong>
-            <span>· 🔐</span> <strong id="whoRole">—</strong>
-          </div>
+      <!-- SCREEN: HOME (solo con sesión) -->
+      <section id="screen-home" class="hide">
+        <div class="q">¿Qué deseás hacer hoy?</div>
+        <p class="p">Registrá las ofrendas del servicio o revisá el análisis histórico de montos y asistencia.</p>
 
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <select id="limitSel" onchange="loadIngresos()">
-              <option value="50">Últimos 50</option>
-              <option value="100" selected>Últimos 100</option>
-              <option value="200">Últimos 200</option>
-              <option value="500">Últimos 500</option>
-            </select>
-            <button class="secondary" onclick="loadIngresos()">Recargar</button>
+        <div class="card" onclick="go('ingresar')">
+          <div class="left">
+            <div class="ic">🔥</div>
+            <div class="ctxt">
+              <div class="t">Ingresar Ofrenda</div>
+              <div class="d">Registro rápido por servicio, con notas opcionales.</div>
+            </div>
           </div>
+          <div class="chev">›</div>
         </div>
 
-        <!-- FORM (hidden for viewer) -->
-        <div id="formIngresoWrap">
-          <h2>Nuevo ingreso</h2>
-
-          <div class="row3">
-            <div>
-              <label for="fecha">Fecha</label>
-              <input id="fecha" type="date" />
-            </div>
-            <div>
-              <label for="monto">Monto</label>
-              <input id="monto" type="number" inputmode="decimal" placeholder="₡" />
-            </div>
-            <div>
-              <label for="asistencia">Asistencia</label>
-              <input id="asistencia" type="number" inputmode="numeric" placeholder="0" />
+        <div class="card" onclick="go('analisis')">
+          <div class="left">
+            <div class="ic">📈</div>
+            <div class="ctxt">
+              <div class="t">Ver Análisis</div>
+              <div class="d">Montos, asistencia y tendencia por servicio.</div>
             </div>
           </div>
-
-          <div class="row">
-            <div>
-              <label for="servicio">Servicio</label>
-              <input id="servicio" placeholder="Ej: Domingo AM" />
-            </div>
-            <div>
-              <label for="notas">Notas</label>
-              <input id="notas" placeholder="Opcional" />
-            </div>
-          </div>
-
-          <div class="btns">
-            <button class="primary" onclick="addIngreso()">Guardar ingreso</button>
-            <button class="secondary" onclick="clearForm()">Limpiar</button>
-          </div>
-
-          <div class="msg" id="saveMsg"></div>
-
-          <div class="divider"></div>
+          <div class="chev">›</div>
         </div>
 
-        <h2>Ingresos</h2>
-        <div class="muted" id="tableInfo">Cargando…</div>
-        <div style="margin-top:10px; overflow:auto;">
-          <table id="tbl">
-            <thead>
-              <tr>
-                <th class="nowrap">Fecha</th>
-                <th class="right nowrap">Monto</th>
-                <th class="right nowrap">Asistencia</th>
-                <th>Servicio</th>
-                <th>Notas</th>
-                <th class="nowrap">Usuario</th>
-              </tr>
-            </thead>
-            <tbody id="tblBody">
-              <tr><td colspan="6" class="muted">Iniciá sesión para ver datos.</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="small" style="margin-top:10px;">
-          Consejo anti-caché: si GitHub Pages te muestra una versión vieja, probá incógnito o borrá datos del sitio. Si tenés service worker, puede estar sirviendo assets antiguos.
+        <div class="card" onclick="go('contacto')">
+          <div class="left">
+            <div class="ic">💬</div>
+            <div class="ctxt">
+              <div class="t">Contacto y sugerencias</div>
+              <div class="d">Comentá mejoras, dudas o ideas futuras.</div>
+            </div>
+          </div>
+          <div class="chev">›</div>
         </div>
       </section>
-    </div>
+
+      <!-- Placeholder screens -->
+      <section id="screen-ingresar" class="hide">
+        <div class="q">Ingresar Ofrenda</div>
+        <p class="p">Aquí va el formulario (lo conectamos después). Por ahora el flujo Login→Home ya quedó.</p>
+        <button class="btn" style="max-width:220px;" onclick="go('home')">Volver</button>
+      </section>
+
+      <section id="screen-analisis" class="hide">
+        <div class="q">Ver Análisis</div>
+        <p class="p">Aquí va el dashboard (lo conectamos después). Por ahora el flujo Login→Home ya quedó.</p>
+        <button class="btn" style="max-width:220px;" onclick="go('home')">Volver</button>
+      </section>
+
+      <section id="screen-contacto" class="hide">
+        <div class="q">Contacto y sugerencias</div>
+        <p class="p">Aquí va el formulario de contacto/sugerencias.</p>
+        <button class="btn" style="max-width:220px;" onclick="go('home')">Volver</button>
+      </section>
+    </main>
+
+    <footer>
+      © 2025 Ofrendas Analytics · Creado por Jeffrey Trigueros<br/>
+      ¿Querés esta aplicación para tu iglesia? <a href="#" onclick="alert('Luego lo conectamos a WhatsApp'); return false;">Contactame por WhatsApp</a>
+    </footer>
   </div>
 
 <script>
-/**
- * ============================
- * CONFIG
- * ============================
- * Reemplazá esta URL por tu Apps Script Web App (doPost).
- * Debe aceptar JSON con {action:"login"...} etc.
- */
-const API_URL = "https://script.google.com/macros/s/AKfycbyEmE-nt_oYjtqUzH85ssGZtaEcuZnWIGsLoJDNG__xfPdh4gbWHYKZauSP6Q3hAMKX/exec";
+  // ✅ Tu Web App URL oficial (ya guardado en memoria, lo pegamos aquí):
+  const API_URL = "https://script.google.com/macros/s/AKfycbyEmE-nt_oYjtqUzH85ssGZtaEcuZnWIGsLoJDNG__xfPdh4gbWHYKZauSP6Q3hAMKX/exec";
 
-/**
- * ============================
- * HELPERS UI
- * ============================
- */
-function $(id){ return document.getElementById(id); }
+  // Local session
+  const LS = {
+    get token(){ return localStorage.getItem("ofr_token") || ""; },
+    set token(v){ localStorage.setItem("ofr_token", v||""); },
+    get usuario(){ return localStorage.getItem("ofr_usuario") || ""; },
+    set usuario(v){ localStorage.setItem("ofr_usuario", v||""); },
+    get iglesia(){ return localStorage.getItem("ofr_iglesia") || ""; },
+    set iglesia(v){ localStorage.setItem("ofr_iglesia", v||""); },
+    get acceso(){ return localStorage.getItem("ofr_acceso") || ""; },
+    set acceso(v){ localStorage.setItem("ofr_acceso", v||""); },
+    clear(){
+      ["ofr_token","ofr_usuario","ofr_iglesia","ofr_acceso"].forEach(k=>localStorage.removeItem(k));
+    }
+  };
 
-function showMsg(el, text, kind){
-  const box = typeof el === "string" ? $(el) : el;
-  box.classList.remove("ok","bad");
-  if(kind) box.classList.add(kind);
-  box.textContent = text || "";
-  box.style.display = text ? "block" : "none";
-}
+  function $(id){ return document.getElementById(id); }
 
-function setStatus(text){
-  $("statusText").textContent = text;
-}
-
-function moneyCRC(n){
-  const x = Number(n || 0);
-  return x.toLocaleString("es-CR", { style:"currency", currency:"CRC", maximumFractionDigits: 0 });
-}
-
-function fmtDate(d){
-  try{
-    const dt = (d instanceof Date) ? d : new Date(d);
-    if(isNaN(dt.getTime())) return "";
-    return dt.toISOString().slice(0,10);
-  }catch(_){ return ""; }
-}
-
-function todayISO(){
-  const now = new Date();
-  const tz = new Date(now.getTime() - now.getTimezoneOffset()*60000);
-  return tz.toISOString().slice(0,10);
-}
-
-function hardRefresh(){
-  // Recarga datos y re-renderiza
-  init();
-}
-
-/**
- * ============================
- * SESSION STORAGE
- * ============================
- */
-const LS = {
-  get token(){ return localStorage.getItem("ofr_token") || ""; },
-  set token(v){ localStorage.setItem("ofr_token", v||""); },
-
-  get usuario(){ return localStorage.getItem("ofr_usuario") || ""; },
-  set usuario(v){ localStorage.setItem("ofr_usuario", v||""); },
-
-  get iglesia(){ return localStorage.getItem("ofr_iglesia") || ""; },
-  set iglesia(v){ localStorage.setItem("ofr_iglesia", v||""); },
-
-  get acceso(){ return localStorage.getItem("ofr_acceso") || ""; },
-  set acceso(v){ localStorage.setItem("ofr_acceso", v||""); },
-
-  clear(){
-    localStorage.removeItem("ofr_token");
-    localStorage.removeItem("ofr_usuario");
-    localStorage.removeItem("ofr_iglesia");
-    localStorage.removeItem("ofr_acceso");
-  }
-};
-
-/**
- * ============================
- * API
- * ============================
- */
-async function api(payload){
-  if(!API_URL || API_URL.includes("PEGA_AQUI")){
-    throw new Error("Falta configurar API_URL en el HTML.");
-  }
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type":"application/json" },
-    body: JSON.stringify(payload || {})
-  });
-  const data = await res.json();
-  return data;
-}
-
-/**
- * ============================
- * AUTH
- * ============================
- */
-async function login(){
-  showMsg("loginMsg","",null);
-
-  const usuario = $("loginUser").value.trim();
-  const password = $("loginPass").value;
-
-  if(!usuario || !password){
-    showMsg("loginMsg","Escribí usuario y password.","bad");
-    return;
+  function showMsg(id, text, kind){
+    const el = $(id);
+    el.classList.remove("ok","bad");
+    if(kind) el.classList.add(kind);
+    el.textContent = text || "";
+    el.style.display = text ? "block" : "none";
   }
 
-  $("btnLogin").disabled = true;
-  try{
-    const r = await api({ action:"login", usuario, password });
-    if(!r.ok){
-      showMsg("loginMsg", r.error || "No se pudo iniciar sesión.", "bad");
+  function showScreen(name){
+    const screens = ["login","home","ingresar","analisis","contacto"];
+    for(const s of screens){
+      $("screen-"+s).classList.toggle("hide", s !== name);
+    }
+  }
+
+  function setSubtitle(){
+    if(!LS.token){
+      $("subtitle").textContent = "Acceso · Módulo de Ofrendas";
       return;
     }
-
-    // Guardar sesión
-    LS.token = r.token;
-    LS.usuario = r.usuario || usuario;
-    LS.iglesia = r.iglesia || "";
-    LS.acceso = (r.acceso || "viewer").toLowerCase();
-
-    showMsg("loginMsg","✅ Sesión iniciada.","ok");
-    await init();
-  }catch(err){
-    showMsg("loginMsg", String(err?.message || err), "bad");
-  }finally{
-    $("btnLogin").disabled = false;
-  }
-}
-
-function logout(){
-  LS.clear();
-  location.reload();
-}
-
-function demoFill(){
-  $("loginUser").value = "userA@iglesia1.com";
-  $("loginPass").value = "1234";
-}
-
-/**
- * ============================
- * APP: INGRESOS
- * ============================
- */
-function clearForm(){
-  $("fecha").value = todayISO();
-  $("monto").value = "";
-  $("asistencia").value = "";
-  $("servicio").value = "";
-  $("notas").value = "";
-  showMsg("saveMsg","",null);
-}
-
-async function addIngreso(){
-  showMsg("saveMsg","",null);
-
-  const token = LS.token;
-  if(!token){
-    showMsg("saveMsg","No autenticado.","bad");
-    return;
+    const ig = LS.iglesia || "—";
+    $("subtitle").textContent = `${ig} · Módulo de Ofrendas`;
   }
 
-  // UX gate (la seguridad real va en backend)
-  if(LS.acceso === "viewer"){
-    showMsg("saveMsg","Tu usuario no tiene permisos para guardar (viewer).","bad");
-    return;
-  }
-
-  const monto = Number($("monto").value || 0);
-  const asistencia = Number($("asistencia").value || 0);
-  const servicio = $("servicio").value.trim();
-  const notas = $("notas").value.trim();
-  const fecha = $("fecha").value || todayISO();
-
-  if(!monto || monto <= 0){
-    showMsg("saveMsg","Monto inválido.","bad");
-    return;
-  }
-
-  try{
-    const r = await api({
-      action:"addIngreso",
-      token,
-      fecha,
-      monto,
-      asistencia,
-      servicio,
-      notas
+  async function api(payload){
+    const res = await fetch(API_URL, {
+      method:"POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload || {})
     });
+    return await res.json();
+  }
 
-    if(!r.ok){
-      showMsg("saveMsg", r.error || "No se pudo guardar.", "bad");
+  // 🔒 Validar sesión “en serio” (opcional pero recomendado)
+  // Si tu backend no tiene action=whoami todavía, esto lo dejamos suave.
+  async function validateSession(){
+    if(!LS.token) return false;
+    // Intentamos una llamada que requiera token (por ejemplo getIngresos limit 1)
+    try{
+      const r = await api({ action:"getIngresos", token: LS.token, limit: 1 });
+      if(!r.ok) return false;
+      // refrescar datos por si cambió acceso/iglesia
+      LS.iglesia = r.iglesia || LS.iglesia;
+      LS.acceso = r.acceso || LS.acceso;
+      return true;
+    }catch(_){
+      return false;
+    }
+  }
+
+  async function login(){
+    showMsg("loginMsg","",null);
+    const usuario = $("loginUser").value.trim();
+    const password = $("loginPass").value;
+
+    if(!usuario || !password){
+      showMsg("loginMsg","Escribí usuario y password.","bad");
       return;
     }
 
-    showMsg("saveMsg","✅ Guardado.", "ok");
-    clearForm();
-    await loadIngresos();
-  }catch(err){
-    showMsg("saveMsg", String(err?.message || err), "bad");
+    $("btnLogin").disabled = true;
+    try{
+      const r = await api({ action:"login", usuario, password });
+      if(!r.ok){
+        showMsg("loginMsg", r.error || "No se pudo iniciar sesión.", "bad");
+        return;
+      }
+      LS.token = r.token;
+      LS.usuario = r.usuario || usuario;
+      LS.iglesia = r.iglesia || "";
+      LS.acceso = (r.acceso || "viewer").toLowerCase();
+
+      setSubtitle();
+      showScreen("home");
+    }catch(err){
+      showMsg("loginMsg", String(err?.message || err), "bad");
+    }finally{
+      $("btnLogin").disabled = false;
+    }
   }
-}
 
-async function loadIngresos(){
-  const token = LS.token;
-  if(!token){
-    $("tableInfo").textContent = "Iniciá sesión para ver datos.";
-    $("tblBody").innerHTML = `<tr><td colspan="6" class="muted">Iniciá sesión para ver datos.</td></tr>`;
-    return;
+  function logout(){
+    LS.clear();
+    setSubtitle();
+    showScreen("login");
   }
 
-  $("tableInfo").textContent = "Cargando…";
-
-  try{
-    const limit = Number($("limitSel").value || 100);
-    const r = await api({ action:"getIngresos", token, limit });
-
-    if(!r.ok){
-      $("tableInfo").textContent = "Sesión inválida o expirada.";
-      $("tblBody").innerHTML = `<tr><td colspan="6" class="muted">Sesión inválida o expirada.</td></tr>`;
-      // fuerza logout para evitar loops raros
-      setTimeout(()=>logout(), 600);
+  function openMenu(){
+    if(!LS.token){
+      alert("Primero iniciá sesión.");
       return;
     }
-
-    const rows = Array.isArray(r.rows) ? r.rows : [];
-    $("tableInfo").textContent = `Mostrando ${rows.length} filas · Iglesia: ${r.iglesia || LS.iglesia}`;
-
-    // Tu hoja: Usuario | Iglesia | Fecha | Monto | Asistencia | Servicio | Notas
-    const body = rows.map(row=>{
-      const usuario = row[0] ?? "";
-      const iglesia = row[1] ?? "";
-      const fecha = fmtDate(row[2]);
-      const monto = moneyCRC(row[3]);
-      const asis = Number(row[4] ?? 0).toLocaleString("es-CR");
-      const servicio = row[5] ?? "";
-      const notas = row[6] ?? "";
-      return `
-        <tr>
-          <td class="nowrap">${fecha}</td>
-          <td class="right nowrap">${monto}</td>
-          <td class="right nowrap">${asis}</td>
-          <td>${escapeHtml(servicio)}</td>
-          <td>${escapeHtml(notas)}</td>
-          <td class="nowrap">${escapeHtml(usuario)}</td>
-        </tr>
-      `;
-    }).join("");
-
-    $("tblBody").innerHTML = body || `<tr><td colspan="6" class="muted">No hay datos todavía.</td></tr>`;
-
-  }catch(err){
-    $("tableInfo").textContent = "Error cargando datos.";
-    $("tblBody").innerHTML = `<tr><td colspan="6" class="muted">${escapeHtml(String(err?.message || err))}</td></tr>`;
-  }
-}
-
-function escapeHtml(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#39;");
-}
-
-/**
- * ============================
- * INIT
- * ============================
- */
-async function init(){
-  // Defaults
-  if(!$("fecha").value) $("fecha").value = todayISO();
-
-  const hasSession = !!LS.token;
-
-  if(!hasSession){
-    setStatus("No autenticado");
-    $("sessionBox").textContent = "Todavía no hay sesión.";
-    $("whoUser").textContent = "—";
-    $("whoChurch").textContent = "—";
-    $("whoRole").textContent = "—";
-    $("badgeWho").classList.add("hide");
-    $("formIngresoWrap").classList.remove("hide"); // lo dejamos visible, pero no guarda sin sesión
-    await loadIngresos();
-    return;
+    const a = (LS.acceso || "viewer");
+    const msg =
+      `👤 ${LS.usuario}\n⛪ ${LS.iglesia}\n🔐 ${a}\n\n` +
+      `Opciones:\n` +
+      `1) Home\n2) Cerrar sesión`;
+    const pick = prompt(msg, "1");
+    if(pick === "2") logout();
+    else showScreen("home");
   }
 
-  // Authenticated
-  setStatus("Autenticado");
-  $("badgeWho").classList.remove("hide");
-
-  $("whoUser").textContent = LS.usuario || "—";
-  $("whoChurch").textContent = LS.iglesia || "—";
-  $("whoRole").textContent = LS.acceso || "viewer";
-
-  $("sessionBox").innerHTML = `
-    <div class="small">Token: <span class="mono">${escapeHtml(LS.token.slice(0, 10))}…</span></div>
-    <div class="small">Usuario: <strong>${escapeHtml(LS.usuario)}</strong></div>
-    <div class="small">Iglesia: <strong>${escapeHtml(LS.iglesia)}</strong></div>
-    <div class="small">Acceso: <strong>${escapeHtml(LS.acceso)}</strong></div>
-  `;
-
-  // UX: ocultar formulario si viewer
-  if((LS.acceso || "viewer") === "viewer"){
-    $("formIngresoWrap").classList.add("hide");
-  }else{
-    $("formIngresoWrap").classList.remove("hide");
+  function go(where){
+    if(!LS.token){
+      showScreen("login");
+      return;
+    }
+    // Gate por rol (ejemplo): viewer no puede ingresar ofrenda
+    if(where === "ingresar" && (LS.acceso || "viewer") === "viewer"){
+      alert("Tu usuario no tiene permisos para ingresar ofrendas (viewer).");
+      return;
+    }
+    showScreen(where);
   }
 
-  await loadIngresos();
-}
+  // INIT: la primera pantalla accesible es login
+  (async function init(){
+    setSubtitle();
+    showScreen("login");
 
-init();
+    if(LS.token){
+      const ok = await validateSession();
+      if(ok){
+        setSubtitle();
+        showScreen("home");
+      }else{
+        LS.clear();
+        showScreen("login");
+      }
+    }
+  })();
 </script>
 </body>
 </html>
