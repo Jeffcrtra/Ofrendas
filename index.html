@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>1.45 Ofrendas Analytics</title>
+  <title>1.50 Ofrendas Analytics</title>
 
   <style>
     :root{
@@ -33,19 +33,21 @@
       min-height:100vh;
       display:flex;
       justify-content:center;
-      padding:22px;
+      padding:14px;
       color:var(--ink);
     }
 
     .frame{
       width:min(980px, 100%);
-      background:#fff;
+      background:var(--card);
       border-radius:26px;
-      box-shadow:var(--shadow);
+      box-shadow: var(--shadow);
       overflow:hidden;
       display:flex;
       flex-direction:column;
-      min-height:86vh;
+    
+      /* ✅ antes: min-height:86vh; */
+      align-self:center;
     }
 
     header{
@@ -97,7 +99,6 @@
       padding:18px;
       display:flex;
       flex-direction:column;
-      flex:1;
     }
 
     .hide{ display:none !important; }
@@ -299,7 +300,11 @@
 </main>
 
 <footer>
-  © 2025 Ofrendas Analytics · Creado por Jeffrey Trigueros
+  © 2025 Ofrendas Analytics · Creado por Jeffrey Trigueros<br/>
+  ¿Querés esta aplicación para tu iglesia?
+  <a href="https://www.linkedin.com/in/jeffrey-trigueros-371191123/" target="_blank" rel="noopener">
+    Contactame por LinkedIn
+  </a>
 </footer>
 
 </div>
@@ -387,3 +392,4 @@ function logout(){
 
 </body>
 </html>
+
