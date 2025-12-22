@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>12.37 Ofrendas Analytics</title>
+  <title>1.00 Ofrendas Analytics</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -73,9 +73,13 @@
       font-size:18px;
       flex:0 0 auto;
     }
-    main{padding:18px;}
+    main{
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+      }
+    
     .hide{display:none !important;}
-
     .q{font-size:18px; font-weight:900; margin:8px 0 6px;}
     .p{color:var(--muted); margin:0 0 16px; font-size:13px; line-height:1.4}
 
@@ -226,12 +230,82 @@
       background:linear-gradient(180deg, #fff, var(--soft2));
     }
     a{color:#2563eb; text-decoration:none;}
+    
+    /* --- BOTONES CON VIDA --- */
+    .btn{
+      position: relative;
+      box-shadow:
+        0 10px 20px rgba(0,0,0,.18),
+        inset 0 1px 0 rgba(255,255,255,.12);
+      transition:
+        transform .08s ease,
+        box-shadow .08s ease,
+        filter .08s ease;
+    }
+    
+    .btn:hover{
+      filter: brightness(1.05);
+    }
+    
+    .btn:active{
+      transform: translateY(2px);
+      box-shadow:
+        0 6px 12px rgba(0,0,0,.18),
+        inset 0 1px 0 rgba(0,0,0,.2);
+    }
+    
+    /* Botón secundario */
+    .btn.secondary{
+      box-shadow:
+        0 6px 14px rgba(0,0,0,.10);
+    }
+    
+    .btn.secondary:active{
+      transform: translateY(1px);
+    }
+
+      /* --- STATUS BAR --- */
+      .status{
+        font-size: 12px;
+        padding: 6px 14px;
+        background: #f1f5f9;
+        color: #334155;
+        border-bottom: 1px solid var(--line);
+      }
+      
+      .status.ok{
+        background: #ecfdf5;
+        color: #065f46;
+      }
+      
+      .status.loading{
+        background: #eff6ff;
+        color: #1e40af;
+      }
+      
+      .status.error{
+        background: #fef2f2;
+        color: #7f1d1d;
+      }
+    
+    #screen-login{
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #screen-home{
+      flex: 1;
+    }
+    
   </style>
 </head>
 
 <body>
   <div class="frame">
     <header>
+      <div id="statusBar" class="status hide">Conectando…</div>
       <div class="head-left">
         <div class="logo">OA</div>
         <div class="titles">
@@ -557,13 +631,27 @@
   }
 
   function fmtDate(d){
-    try{
-      const dt = (d instanceof Date) ? d : new Date(d);
-      if(isNaN(dt.getTime())) return "";
-      return dt.toISOString().slice(0,10);
-    }catch(_){ return ""; }
+      try{
+        const dt = (d instanceof Date) ? d : new Date(d);
+        if(isNaN(dt.getTime())) return "";
+        return dt.toISOString().slice(0,10);
+      }catch(_){ return ""; }
+    }
+  
+  function setStatus(text, type="loading"){
+    const el = document.getElementById("statusBar");
+    el.textContent = text;
+    el.className = "status " + type;
+    el.classList.remove("hide");
+  }
+  
+  function clearStatus(delay=1200){
+    setTimeout(()=>{
+      document.getElementById("statusBar").classList.add("hide");
+    }, delay);
   }
 
+  
   async function api(payload){
     const form = new URLSearchParams();
     Object.entries(payload || {}).forEach(([k,v]) => form.append(k, String(v ?? "")));
@@ -594,31 +682,44 @@
 
   async function login(){
     showMsg("loginMsg","",null);
+  
     const usuario = $("loginUser").value.trim();
     const password = $("loginPass").value;
-
+  
     if(!usuario || !password){
       showMsg("loginMsg","Escribí usuario y password.","bad");
+      setStatus("⚠️ Completá usuario y password", "error");
+      clearStatus();
       return;
     }
-
+  
+    setStatus("🔐 Verificando acceso…", "loading");
     $("btnLogin").disabled = true;
+  
     try{
       const r = await api({ action:"login", usuario, password });
+  
       if(!r.ok){
         showMsg("loginMsg", r.error || "No se pudo iniciar sesión.", "bad");
+        setStatus("❌ Error de autenticación", "error");
         return;
       }
+  
       LS.token = r.token;
       LS.usuario = r.usuario || usuario;
       LS.iglesia = r.iglesia || "";
       LS.acceso = (r.acceso || "viewer").toLowerCase();
-
+  
       setSubtitle();
       $("whoLine").textContent = `👤 ${LS.usuario} · ⛪ ${LS.iglesia} · 🔐 ${LS.acceso}`;
       showScreen("home");
+  
+      setStatus("✅ Conectado correctamente", "ok");
+      clearStatus();
     }catch(err){
       showMsg("loginMsg", String(err?.message || err), "bad");
+      setStatus("❌ No se pudo conectar con el servidor", "error");
+      // opcional: console.error(err);
     }finally{
       $("btnLogin").disabled = false;
     }
@@ -930,6 +1031,7 @@
 </script>
 </body>
 </html>
+
 
 
 
