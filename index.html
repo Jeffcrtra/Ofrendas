@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>1.00 Ofrendas Analytics</title>
+  <title>1.09 Ofrendas Analytics</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -298,6 +298,14 @@
     #screen-home{
       flex: 1;
     }
+
+  .login-state{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      display: none; /* se muestra solo cuando corresponde */
+    }
+
     
   </style>
 </head>
@@ -332,9 +340,8 @@
           <button class="btn" id="btnLogin" onclick="login()">Entrar</button>
           <div class="msg" id="loginMsg"></div>
 
-          <div class="small" style="margin-top:10px;">
-            Si GitHub Pages te muestra una versión vieja: probá incógnito o borrá “datos del sitio”. Si hay service worker, puede cachear.
-          </div>
+          <div id="loginState" class="login-state">🔐 Verificando acceso…</div>
+          
         </div>
       </section>
 
@@ -681,11 +688,14 @@
   }
 
   async function login(){
+    // Limpieza de estados previos
     showMsg("loginMsg","",null);
+    $("loginState").style.display = "none";
   
     const usuario = $("loginUser").value.trim();
     const password = $("loginPass").value;
   
+    // Validación básica
     if(!usuario || !password){
       showMsg("loginMsg","Escribí usuario y password.","bad");
       setStatus("⚠️ Completá usuario y password", "error");
@@ -693,18 +703,24 @@
       return;
     }
   
-    setStatus("🔐 Verificando acceso…", "loading");
+    // Estado visual de verificación
+    $("loginState").style.display = "block";
+    $("loginState").textContent = "🔐 Verificando acceso…";
+    setStatus("Verificando acceso…", "loading");
     $("btnLogin").disabled = true;
   
     try{
       const r = await api({ action:"login", usuario, password });
   
+      // Error de credenciales o permisos
       if(!r.ok){
         showMsg("loginMsg", r.error || "No se pudo iniciar sesión.", "bad");
+        $("loginState").textContent = "❌ Acceso denegado. Revisá tus credenciales.";
         setStatus("❌ Error de autenticación", "error");
         return;
       }
   
+      // Login exitoso
       LS.token = r.token;
       LS.usuario = r.usuario || usuario;
       LS.iglesia = r.iglesia || "";
@@ -712,18 +728,23 @@
   
       setSubtitle();
       $("whoLine").textContent = `👤 ${LS.usuario} · ⛪ ${LS.iglesia} · 🔐 ${LS.acceso}`;
+  
       showScreen("home");
   
+      // Feedback positivo y limpieza
+      $("loginState").style.display = "none";
       setStatus("✅ Conectado correctamente", "ok");
       clearStatus();
+  
     }catch(err){
       showMsg("loginMsg", String(err?.message || err), "bad");
+      $("loginState").textContent = "❌ No se pudo conectar. Intentá de nuevo.";
       setStatus("❌ No se pudo conectar con el servidor", "error");
-      // opcional: console.error(err);
     }finally{
       $("btnLogin").disabled = false;
     }
   }
+
 
   function logout(){
     LS.clear();
@@ -1031,6 +1052,7 @@
 </script>
 </body>
 </html>
+
 
 
 
