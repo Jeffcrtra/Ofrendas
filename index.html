@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>1.09 Ofrendas Analytics</title>
+  <title>1.16 Ofrendas Analytics</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -306,6 +306,122 @@
       display: none; /* se muestra solo cuando corresponde */
     }
 
+    .spinner{
+      width:16px; height:16px;
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,.35);
+      border-top-color: rgba(255,255,255,1);
+      display:inline-block;
+      margin-left:10px;
+      animation: spin .8s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .btn[disabled]{ opacity:.75; cursor:not-allowed; }
+    input[disabled]{ opacity:.85; }
+
+    section{
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity .14s ease, transform .14s ease;
+      }
+      section.hide{
+        display:block !important;      /* IMPORTANTE: para que transicione */
+        opacity: 0;
+        transform: translateY(6px);
+        pointer-events:none;
+        height:0;
+        overflow:hidden;
+        margin:0;
+        padding:0;
+      }
+
+    .drawer-backdrop{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      z-index: 50;
+    }
+    
+    .drawer{
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      width: min(360px, 92vw);
+      background: #fff;
+      border-left: 1px solid var(--line);
+      box-shadow: -18px 0 45px rgba(0,0,0,.22);
+      z-index: 60;
+      transform: translateX(100%);
+      transition: transform .18s ease;
+      display:flex;
+      flex-direction:column;
+    }
+    
+    .drawer.show{
+      transform: translateX(0);
+    }
+    
+    .drawer-head{
+      padding: 14px 14px;
+      border-bottom: 1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background: linear-gradient(180deg, var(--soft2), #fff);
+    }
+    
+    .drawer-title{
+      font-weight: 900;
+      font-size: 14px;
+    }
+    
+    .drawer-user{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    
+    .drawer-userline{
+      font-size: 13px;
+      color: var(--ink);
+    }
+    
+    .drawer-items{
+      padding: 10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    
+    .drawer-item{
+      text-align:left;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor:pointer;
+      font-weight: 800;
+      transition: transform .08s ease, filter .08s ease;
+    }
+    
+    .drawer-item:hover{ filter: brightness(1.02); }
+    .drawer-item:active{ transform: translateY(1px); }
+    
+    .drawer-item.danger{
+      border-color: rgba(239,68,68,.35);
+      background: rgba(239,68,68,.08);
+      color:#7f1d1d;
+    }
+    
+    .drawer-sep{
+      height:1px;
+      background: var(--line);
+      margin: 6px 2px;
+    }
+
     
   </style>
 </head>
@@ -337,7 +453,10 @@
           <label for="loginPass">Password</label>
           <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"/>
 
-          <button class="btn" id="btnLogin" onclick="login()">Entrar</button>
+          <button class="btn" id="btnLogin" onclick="login()">
+            <span class="btnText">Entrar</span>
+            <span class="spinner hide" aria-hidden="true"></span>
+          </button>
           <div class="msg" id="loginMsg"></div>
 
           <div id="loginState" class="login-state">🔐 Verificando acceso…</div>
@@ -609,7 +728,10 @@
 
   function showScreen(name){
     const screens = ["login","home","ingresar","analisis","contacto"];
-    for(const s of screens) $("screen-"+s).classList.toggle("hide", s !== name);
+    for(const s of screens){
+      const el = $("screen-"+s);
+      el.classList.toggle("hide", s !== name);
+    }
   }
 
   function setSubtitle(){
@@ -745,7 +867,15 @@
     }
   }
 
-
+  function setLoginBusy(isBusy){
+    $("btnLogin").disabled = isBusy;
+    $("loginUser").disabled = isBusy;
+    $("loginPass").disabled = isBusy;
+  
+    const sp = document.querySelector("#btnLogin .spinner");
+    if(sp) sp.classList.toggle("hide", !isBusy);
+  }
+  
   function logout(){
     LS.clear();
     setSubtitle();
@@ -753,22 +883,43 @@
   }
 
   function openMenu(){
-    if(!LS.token){
-      alert("Primero iniciá sesión.");
-      return;
-    }
-    const a = (LS.acceso || "viewer");
-    const msg =
-      `👤 ${LS.usuario}\n⛪ ${LS.iglesia}\n🔐 ${a}\n\n` +
-      `Opciones:\n` +
-      `1) Home\n2) Ingresar Ofrenda\n3) Ver Análisis\n4) Contacto\n5) Cerrar sesión`;
-    const pick = prompt(msg, "1");
-    if(pick === "2") go("ingresar");
-    else if(pick === "3") go("analisis");
-    else if(pick === "4") go("contacto");
-    else if(pick === "5") logout();
-    else showScreen("home");
+  if(!LS.token){
+    setStatus("Primero iniciá sesión.", "error");
+    clearStatus();
+    return;
   }
+  openDrawer();
+}
+
+  function openDrawer(){
+    $("drawerBackdrop").classList.remove("hide");
+    $("drawer").classList.remove("hide");
+    // tick para activar transición
+    requestAnimationFrame(()=> $("drawer").classList.add("show"));
+  
+    $("drawerUserLine").textContent = `👤 ${LS.usuario} · ⛪ ${LS.iglesia} · 🔐 ${LS.acceso}`;
+  
+    // Si viewer, deshabilitar “Ingresar Ofrenda” visualmente
+    const canWrite = (LS.acceso || "viewer") !== "viewer";
+    const btnIng = $("navIngresar");
+    btnIng.disabled = !canWrite;
+    btnIng.style.opacity = canWrite ? "1" : ".45";
+    btnIng.style.cursor = canWrite ? "pointer" : "not-allowed";
+  }
+  
+  function closeDrawer(){
+    $("drawer").classList.remove("show");
+    setTimeout(()=>{
+      $("drawer").classList.add("hide");
+      $("drawerBackdrop").classList.add("hide");
+    }, 180);
+  }
+  
+  function nav(where){
+    closeDrawer();
+    go(where); // usa tu función go() existente
+  }
+
 
   async function go(where){
     if(!LS.token){
@@ -1050,8 +1201,33 @@
     }
   })();
 </script>
+
+  <div id="drawerBackdrop" class="drawer-backdrop hide" onclick="closeDrawer()"></div>
+
+<aside id="drawer" class="drawer hide" aria-hidden="true">
+  <div class="drawer-head">
+    <div class="drawer-title">Menú</div>
+    <button class="iconbtn" onclick="closeDrawer()" aria-label="Cerrar">✕</button>
+  </div>
+
+  <div class="drawer-user">
+    <div id="drawerUserLine" class="drawer-userline">—</div>
+  </div>
+
+  <div class="drawer-items">
+    <button class="drawer-item" onclick="nav('home')">🏠 Home</button>
+    <button class="drawer-item" id="navIngresar" onclick="nav('ingresar')">🔥 Ingresar Ofrenda</button>
+    <button class="drawer-item" onclick="nav('analisis')">📈 Ver Análisis</button>
+    <button class="drawer-item" onclick="nav('contacto')">💬 Contacto</button>
+    <div class="drawer-sep"></div>
+    <button class="drawer-item danger" onclick="logout()">🚪 Cerrar sesión</button>
+  </div>
+</aside>
+
+  
 </body>
 </html>
+
 
 
 
