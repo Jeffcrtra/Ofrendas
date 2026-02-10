@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>1.30 Ofrendas – Login</title>
+  <title>2.41 Ofrendas – Login</title>
   <style>
     :root{
       --bg:#f5f5f5;
@@ -49,6 +49,47 @@
     img.avatar{ width:44px; height:44px; border-radius:999px; border:1px solid var(--line); }
     .hidden{ display:none; }
     code{ background:#f3f4f6; padding:2px 6px; border-radius:8px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+    }
+    
+    .tile{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px 12px;
+      background:white;
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      transition: transform .08s ease, box-shadow .08s ease;
+    }
+    
+    .tile:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,.08);
+    }
+    
+    .tile:active{
+      transform: scale(.97);
+    }
+    
+    .icon{
+      font-size:32px;
+    }
+    
+    .label{
+      font-size:14px;
+      font-weight:700;
+      text-align:center;
+      line-height:1.2;
+    }
+
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -78,6 +119,30 @@
         Tu usuario está listo. ID: <code id="uid"></code>
       </p>
 
+      <div id="dashboard" style="margin:16px 0;">
+        <div class="grid">
+          <button class="tile" data-action="ofrenda">
+            <div class="icon">💰</div>
+            <div class="label">Ingresar<br>Ofrenda</div>
+          </button>
+      
+          <button class="tile" data-action="egreso">
+            <div class="icon">📉</div>
+            <div class="label">Ingresar<br>Egreso</div>
+          </button>
+      
+          <button class="tile" data-action="reportes">
+            <div class="icon">📊</div>
+            <div class="label">Reportes</div>
+          </button>
+      
+          <button class="tile" data-action="config">
+            <div class="icon">⚙️</div>
+            <div class="label">Configuración</div>
+          </button>
+        </div>
+      </div>
+      
       <button id="btnLogout" class="btn btn-ghost">Cerrar sesión</button>
     </div>
   </div>
@@ -218,6 +283,32 @@
 
     // Inicial
     refreshUI();
+
+
+    document.querySelectorAll(".tile").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const action = btn.dataset.action;
+    
+        switch(action){
+          case "ofrenda":
+            alert("Aquí va el formulario de OFRENDA");
+            break;
+    
+          case "egreso":
+            alert("Aquí va el formulario de EGRESO");
+            break;
+    
+          case "reportes":
+            alert("Aquí van los REPORTES");
+            break;
+    
+          case "config":
+            alert("Aquí va CONFIGURACIÓN");
+            break;
+        }
+      });
+    });
   </script>
 </body>
 </html>
+
