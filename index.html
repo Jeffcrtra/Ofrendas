@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>3.12 Ofrendas – App</title>
+  <title>3.24 Ofrendas – App</title>
 
   <style>
     :root{
@@ -513,10 +513,13 @@
 
       const payload = {
         amount,
-        concept_id: conceptId,
+        concept: conceptLabel,        // compatibilidad con tabla vieja
+        notes: (ofComments.value || "").trim() || null,  // compatibilidad
+        concept_id: conceptId || null,
         concept_label: conceptLabel,
         witnesses,
         comments: (ofComments.value || "").trim() || null,
+        created_by: currentUser.id
       };
 
       const { data, error } = await supabaseClient
@@ -531,10 +534,12 @@
       if (error) {
         console.warn("Insert offerings error:", error);
       setToastErr(`No se pudo enviar: ${error.message || "error"}`);
+        console.log("Insert error:", error);
+        console.log("Insert error JSON:", JSON.stringify(error, null, 2));
         return;
       }
 
-      setToastOk(`✅ Enviado y recibido en la base de datos. ID: ${data.id}`);
+      setToastErr(`No se pudo enviar: ${error.message || "error 400"}`);
 
       // reset parcial
       ofAmount.value = "";
@@ -654,5 +659,6 @@
   </script>
 </body>
 </html>
+
 
 
