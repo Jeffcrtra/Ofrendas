@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>3.04 Ofrendas – App</title>
+  <title>3.12 Ofrendas – App</title>
 
   <style>
     :root{
@@ -517,8 +517,6 @@
         concept_label: conceptLabel,
         witnesses,
         comments: (ofComments.value || "").trim() || null,
-        created_by: currentUser.id
-        // created_at lo pone Postgres con default now()
       };
 
       const { data, error } = await supabaseClient
@@ -532,7 +530,7 @@
 
       if (error) {
         console.warn("Insert offerings error:", error);
-        setToastErr("No se pudo enviar. Revisa permisos (RLS) o conexión.");
+      setToastErr(`No se pudo enviar: ${error.message || "error"}`);
         return;
       }
 
@@ -656,4 +654,5 @@
   </script>
 </body>
 </html>
+
 
