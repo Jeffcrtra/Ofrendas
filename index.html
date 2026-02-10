@@ -1,250 +1,172 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="build" content="build-2026-02-09-21-15" />
-  <title>10.38 Registro de Ofrendas – Casa de Oración</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>11.15 Ofrendas – Login</title>
   <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 1.5rem;
-      background: #f5f5f5;
+    :root{
+      --bg:#f5f5f5;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --accent:#16a34a;
+      --line:#e5e7eb;
+      --radius:16px;
     }
-    h1 {
-      font-size: 1.4rem;
-      text-align: center;
-      margin: 0.5rem 0 1rem 0;
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      display:flex;
+      min-height:100vh;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
     }
-    .logo {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 0.5rem;
+    .card{
+      width:min(520px, 100%);
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.08);
     }
-    .logo img {
-      max-width: 180px;
-      height: auto;
-      border-radius: 8px;
+    h1{ font-size:18px; margin:0 0 10px; }
+    p{ margin:0 0 14px; color:var(--muted); line-height:1.35; }
+    .btn{
+      width:100%;
+      border:0;
+      border-radius:999px;
+      padding:12px 14px;
+      font-weight:700;
+      cursor:pointer;
     }
-    form {
-      background: #ffffff;
-      padding: 1rem 1.2rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    }
-    label {
-      display: block;
-      font-size: 0.9rem;
-      margin-top: 0.8rem;
-      margin-bottom: 0.2rem;
-    }
-    input, textarea, button {
-      width: 100%;
-      box-sizing: border-box;
-      font-size: 1rem;
-    }
-    input, textarea {
-      padding: 0.5rem 0.6rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      outline: none;
-    }
-    input:focus, textarea:focus {
-      border-color: #4a90e2;
-    }
-    textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
-    button {
-      margin-top: 1rem;
-      padding: 0.6rem;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      background: #4caf50;
-      color: #fff;
-    }
-    button:active {
-      transform: translateY(1px);
-    }
-    .status {
-      margin-top: 0.8rem;
-      font-size: 0.9rem;
-    }
-    .status.ok {
-      color: #2e7d32;
-    }
-    .status.error {
-      color: #c62828;
-    }
-
-    /* Quitar flechas de los inputs numéricos */
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-    }
+    .btn-primary{ background:var(--accent); color:white; }
+    .btn-ghost{ background:#111827; color:white; margin-top:10px; }
+    .row{ display:flex; gap:10px; align-items:center; }
+    img.avatar{ width:44px; height:44px; border-radius:999px; border:1px solid var(--line); }
+    .hidden{ display:none; }
+    code{ background:#f3f4f6; padding:2px 6px; border-radius:8px; }
   </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="logo">
-    <!-- Asegúrate de que el archivo exista en el repo con este nombre -->
-    <img src="CasaDeOracionLogo.jpg" alt="Casa de Oración">
+  <div class="card">
+    <h1>Registro de Ofrendas</h1>
+    <p id="status">Cargando sesión…</p>
+
+    <div id="loggedOut">
+      <button id="btnGoogle" class="btn btn-primary">Ingresar con Gmail (Google)</button>
+      <p style="margin-top:12px;font-size:13px;">
+        Usamos Google para identificarte y registrar tu usuario en la base de datos.
+      </p>
+    </div>
+
+    <div id="loggedIn" class="hidden">
+      <div class="row" style="margin-bottom:12px;">
+        <img id="avatar" class="avatar" alt="avatar" />
+        <div>
+          <div id="name" style="font-weight:800;"></div>
+          <div id="email" style="color:var(--muted); font-size:13px;"></div>
+        </div>
+      </div>
+
+      <p style="font-size:13px;">
+        Tu usuario está listo. ID: <code id="uid"></code>
+      </p>
+
+      <button id="btnLogout" class="btn btn-ghost">Cerrar sesión</button>
+    </div>
   </div>
 
-  <h1> 9 Registro de Ofrendas</h1>
+  <script>
+    // 1) Pega aquí tus keys (Settings → API)
+    const SUPABASE_URL = "PEGA_AQUI_TU_SUPABASE_URL";
+    const SUPABASE_ANON_KEY = "PEGA_AQUI_TU_SUPABASE_ANON_KEY";
 
-  <form id="ofrendaForm">
-    <!-- Fecha se pone automática en el servidor -->
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <label for="monto">Monto (₡)</label>
-    <input
-      type="number"
-      id="monto"
-      name="monto"
-      required
-      min="0"
-      step="1"
-      inputmode="numeric"
-      pattern="[0-9]*"
-    />
+    const elStatus = document.getElementById("status");
+    const elLoggedOut = document.getElementById("loggedOut");
+    const elLoggedIn = document.getElementById("loggedIn");
+    const elName = document.getElementById("name");
+    const elEmail = document.getElementById("email");
+    const elUid = document.getElementById("uid");
+    const elAvatar = document.getElementById("avatar");
 
-    <label for="concepto">Concepto</label>
-    <input
-      type="text"
-      id="concepto"
-      name="concepto"
-      required
-      placeholder="Diezmo, ofrenda, especial..."
-    />
-
-    <label for="notas">Notas</label>
-    <textarea
-      id="notas"
-      name="notas"
-      placeholder="Detalles adicionales (opcional)"
-    ></textarea>
-
-    <!-- PARCHE: importante que NO sea submit si más adelante lo usás como botón de navegación -->
-    <button id="btnGuardarOfrenda" type="submit">Guardar</button>
-    console.log("SUBMIT disparó ✅");
-
-    <div id="status" class="status"></div>
-  </form>
-  
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  const supabase = window.supabase.createClient(
-    "https://TU-PROYECTO.supabase.co",
-    "TU_ANON_PUBLIC_KEY"
-  );
-</script>
-  
-<script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiESV-GMfq48Tvts8BK8WOc3_jS4bU9tTlRoBxNpp-s-LN1O1Qf1cpL4y30wT94USCMQ/exec";
-  const form = document.getElementById('ofrendaForm');
-  const statusEl = document.getElementById('status');
-
-  // PARCHE EXTRA (seguro): si por alguna razón el listener se pierde, al menos confirma que el submit está vivo
-  document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("btnGuardarOfrenda");
-    if (btn && btn.tagName.toLowerCase() === "button") {
-      // Mantiene submit porque este formulario sí guarda
-      // (no lo cambiamos a button para no romper el flujo actual)
-      console.log("Botón Guardar listo.");
-    }
-  });
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    statusEl.textContent = "Enviando...";
-    statusEl.className = "status";
-
-    const { data, error } = await supabase
-      .from("offerings")
-      .insert([{
-        amount: Number(monto),
-        concept,
-        notes,
-        created_by: (await supabase.auth.getUser()).data.user.id
-      }]);
-    
-    if (error) {
-      console.error(error);
-      alert("Error al guardar");
-    } else {
-      console.log("Ofrenda guardada ✅", data);
+    function showLoggedOut(msg){
+      elStatus.textContent = msg || "No has iniciado sesión.";
+      elLoggedOut.classList.remove("hidden");
+      elLoggedIn.classList.add("hidden");
     }
 
-    const montoRaw = document.getElementById('monto').value;
-    const monto = parseInt(montoRaw, 10);
-    const concepto = document.getElementById('concepto').value;
-    const notas = document.getElementById('notas').value;
-
-    if (isNaN(monto)) {
-      statusEl.textContent = "⚠️ El monto debe ser un número entero.";
-      statusEl.className = "status error";
-      return;
+    function showLoggedIn(user){
+      const meta = user.user_metadata || {};
+      elStatus.textContent = "Sesión activa ✅";
+      elLoggedOut.classList.add("hidden");
+      elLoggedIn.classList.remove("hidden");
+      elName.textContent = meta.full_name || meta.name || "Usuario";
+      elEmail.textContent = user.email || "";
+      elUid.textContent = user.id;
+      elAvatar.src = meta.avatar_url || "https://www.gravatar.com/avatar/?d=mp";
     }
 
-    const formData = new FormData();
-    formData.append('monto', monto);
-    formData.append('concepto', concepto);
-    formData.append('notas', notas);
+    async function refreshUI(){
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error) {
+        console.error(error);
+        showLoggedOut("Error leyendo sesión.");
+        return;
+      }
+      const session = data.session;
+      if (!session?.user) {
+        showLoggedOut("No has iniciado sesión.");
+        return;
+      }
+      showLoggedIn(session.user);
 
-    try {
-      console.log("Enviando fetch...");
-      const res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: formData
+      // Bonus: confirmar que el perfil existe (lo crea el trigger)
+      const { data: prof, error: pe } = await supabaseClient
+        .from("user_profiles")
+        .select("user_id, email, full_name, last_login_at")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      if (pe) console.warn("No pude leer user_profiles (RLS/Policy):", pe);
+      else console.log("Perfil en user_profiles ✅", prof);
+    }
+
+    document.getElementById("btnGoogle").addEventListener("click", async () => {
+      // En GitHub Pages, esto debe coincidir con tus Redirect URLs en Supabase
+      const redirectTo = window.location.origin + window.location.pathname;
+
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo }
       });
-      console.log("Fetch respondió. status:", res.status, "ok:", res.ok, "type:", res.type);
 
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (parseErr) {
-        throw new Error("Respuesta no válida del servidor: " + text);
+      if (error) {
+        console.error(error);
+        alert("No se pudo iniciar sesión con Google.");
       }
+    });
 
-      if (data.success) {
-        statusEl.textContent = "✅ Ofrenda registrada correctamente.";
-        statusEl.className = "status ok";
-        form.reset();
-      } else {
-        statusEl.textContent = "⚠️ Error al guardar: " + (data.error || "desconocido");
-        statusEl.className = "status error";
-      }
-    } catch (err) {
-      statusEl.textContent = "❌ Error de conexión: " + err.toString();
-      statusEl.className = "status error";
-    }
-  });
-  console.log("JS cargó OK ✅", new Date().toISOString());
-  console.log("SCRIPT_URL =", SCRIPT_URL);
-  console.log("form existe?", !!document.getElementById("ofrendaForm"));
-  console.log("status existe?", !!document.getElementById("status"));
-  
-  window.addEventListener("error", (e) => {
-    console.error("JS ERROR GLOBAL:", e.message, e.filename, e.lineno);
-  });
-  window.addEventListener("unhandledrejection", (e) => {
-    console.error("PROMISE REJECTION:", e.reason);
-  });
-</script>
+    document.getElementById("btnLogout").addEventListener("click", async () => {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) console.error(error);
+      showLoggedOut("Sesión cerrada.");
+    });
+
+    // Reaccionar a cambios de sesión (login/logout)
+    supabaseClient.auth.onAuthStateChange((_event, _session) => {
+      refreshUI();
+    });
+
+    // Cargar UI inicial
+    refreshUI();
+  </script>
 </body>
 </html>
-
-
-
-
-
-
