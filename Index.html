@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>9.2 Registro de Ofrendas – Casa de Oración</title>
+  <title>9.16 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -133,6 +133,7 @@
 
     <!-- PARCHE: importante que NO sea submit si más adelante lo usás como botón de navegación -->
     <button id="btnGuardarOfrenda" type="submit">Guardar</button>
+    console.log("SUBMIT disparó ✅");
 
     <div id="status" class="status"></div>
   </form>
@@ -175,10 +176,12 @@
     formData.append('notas', notas);
 
     try {
+      console.log("Enviando fetch...");
       const res = await fetch(SCRIPT_URL, {
         method: "POST",
         body: formData
       });
+      console.log("Fetch respondió. status:", res.status, "ok:", res.ok, "type:", res.type);
 
       const text = await res.text();
       let data;
@@ -215,4 +218,5 @@
 </script>
 </body>
 </html>
+
 
