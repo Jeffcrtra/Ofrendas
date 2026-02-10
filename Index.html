@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>9.0 Registro de Ofrendas – Casa de Oración</title>
+  <title>9.2 Registro de Ofrendas – Casa de Oración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -98,7 +98,7 @@
     <img src="CasaDeOracionLogo.jpg" alt="Casa de Oración">
   </div>
 
-  <h1>Registro de Ofrendas</h1>
+  <h1> 9 Registro de Ofrendas</h1>
 
   <form id="ofrendaForm">
     <!-- Fecha se pone automática en el servidor -->
@@ -201,6 +201,18 @@
       statusEl.className = "status error";
     }
   });
+  console.log("JS cargó OK ✅", new Date().toISOString());
+  console.log("SCRIPT_URL =", SCRIPT_URL);
+  console.log("form existe?", !!document.getElementById("ofrendaForm"));
+  console.log("status existe?", !!document.getElementById("status"));
+  
+  window.addEventListener("error", (e) => {
+    console.error("JS ERROR GLOBAL:", e.message, e.filename, e.lineno);
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    console.error("PROMISE REJECTION:", e.reason);
+  });
 </script>
 </body>
 </html>
+
