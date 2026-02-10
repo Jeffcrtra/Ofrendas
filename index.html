@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>11.19 Ofrendas – Login</title>
+  <title>11.25 Ofrendas – Login</title>
   <style>
     :root{
       --bg:#f5f5f5;
@@ -141,7 +141,7 @@
 
     document.getElementById("btnGoogle").addEventListener("click", async () => {
       // En GitHub Pages, esto debe coincidir con tus Redirect URLs en Supabase
-      const redirectTo = window.location.origin + window.location.pathname;
+      const redirectTo = window.location.origin + "/Ofrendas/index.html";
 
       const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: "google",
@@ -170,4 +170,5 @@
   </script>
 </body>
 </html>
+
 
