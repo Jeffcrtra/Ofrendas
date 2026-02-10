@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>11.35 Ofrendas – Login</title>
+  <title>1.09 Ofrendas – Login</title>
   <style>
     :root{
       --bg:#f5f5f5;
@@ -114,8 +114,39 @@
       elAvatar.src = meta.avatar_url || "https://www.gravatar.com/avatar/?d=mp";
     }
 
+    async function invokeWelcome() {
+      const { data: s } = await supabaseClient.auth.getSession();
+      const accessToken = s?.session?.access_token;
+      if (!accessToken) {
+        console.warn("No hay access_token; no estás logueado.");
+        return { data: null, error: "no_access_token" };
+      }
+    
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/send-welcome`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({}),
+      });
+    
+      const text = await res.text();
+      let json;
+      try { json = JSON.parse(text); } catch { json = { raw: text }; }
+    
+      if (!res.ok) {
+        console.warn("send-welcome failed", res.status, json);
+        return { data: null, error: json };
+      }
+      console.log("send-welcome ok", json);
+      return { data: json, error: null };
+    }
+    
+        
     async function refreshUI(){
-      const { data, error } = await supabaseClient.auth.getSession();
+      const { data, error } = await invokeWelcome();
       if (error) {
         console.error(error);
         showLoggedOut("Error leyendo sesión.");
@@ -174,6 +205,7 @@
   </script>
 </body>
 </html>
+
 
 
 
