@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>1.12 Ofrendas – Login</title>
+  <title>1.30 Ofrendas – Login</title>
   <style>
     :root{
       --bg:#f5f5f5;
@@ -83,12 +83,13 @@
   </div>
 
   <script>
-    // 1) Pega aquí tus keys (Settings → API)
+    // === CONFIG ===
     const SUPABASE_URL = "https://zcsuldbyhxsapyxfzuht.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpjc3VsZGJ5aHhzYXB5eGZ6dWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NDA5OTMsImV4cCI6MjA4NjMxNjk5M30.PT-y2F1LSl_xmSOlfL8JKhPgGbytmh35i_oVfIb_pts";
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // UI refs
     const elStatus = document.getElementById("status");
     const elLoggedOut = document.getElementById("loggedOut");
     const elLoggedIn = document.getElementById("loggedIn");
@@ -96,6 +97,8 @@
     const elEmail = document.getElementById("email");
     const elUid = document.getElementById("uid");
     const elAvatar = document.getElementById("avatar");
+
+    let welcomeAttemptedForUserId = null;
 
     function showLoggedOut(msg){
       elStatus.textContent = msg || "No has iniciado sesión.";
@@ -114,74 +117,84 @@
       elAvatar.src = meta.avatar_url || "https://www.gravatar.com/avatar/?d=mp";
     }
 
-    async function invokeWelcome() {
+    async function invokeWelcomeOnce(userId) {
+      // Evitar spam: solo 1 intento por userId en esta carga de página
+      if (!userId) return;
+      if (welcomeAttemptedForUserId === userId) return;
+      welcomeAttemptedForUserId = userId;
+
       const { data: s } = await supabaseClient.auth.getSession();
       const accessToken = s?.session?.access_token;
-      if (!accessToken) {
-        console.warn("No hay access_token; no estás logueado.");
-        return { data: null, error: "no_access_token" };
-      }
-    
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/send-welcome`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({}),
-      });
-    
-      const text = await res.text();
-      let json;
-      try { json = JSON.parse(text); } catch { json = { raw: text }; }
-    
-      if (!res.ok) {
-        console.warn("send-welcome failed", res.status, json);
-        return { data: null, error: json };
-      }
-      console.log("send-welcome ok", json);
-      return { data: json, error: null };
-    }
-    
-        
-    async function refreshUI(){
-      const { data, error } = await invokeWelcome();
-      if (error) {
-        console.error(error);
-        showLoggedOut("Error leyendo sesión.");
-        return;
-      }
-      const session = data.session;
-      if (!session?.user) {
-        showLoggedOut("No has iniciado sesión.");
-        return;
-      }
-      showLoggedIn(session.user);
+      if (!accessToken) return;
 
-      // Bonus: confirmar que el perfil existe (lo crea el trigger)
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/send-welcome`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({}),
+        });
+
+        const text = await res.text();
+        let json;
+        try { json = JSON.parse(text); } catch { json = { raw: text }; }
+
+        if (!res.ok) {
+          // IMPORTANT: esto NO debe tumbar la sesión / UI.
+          console.warn("send-welcome failed", res.status, json);
+          return;
+        }
+        console.log("send-welcome ok", json);
+      } catch (e) {
+        console.warn("send-welcome request failed:", e);
+      }
+    }
+
+    async function confirmProfile(userId){
+      // No rompe nada si falla (RLS/Policy/etc)
       const { data: prof, error: pe } = await supabaseClient
         .from("user_profiles")
         .select("user_id, email, full_name, last_login_at")
-        .eq("user_id", session.user.id)
+        .eq("user_id", userId)
         .maybeSingle();
 
       if (pe) console.warn("No pude leer user_profiles (RLS/Policy):", pe);
       else console.log("Perfil en user_profiles ✅", prof);
     }
 
+    async function refreshUI(){
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error) {
+        console.warn("getSession error:", error);
+        showLoggedOut("Error leyendo sesión.");
+        return;
+      }
+
+      const session = data?.session;
+      if (!session?.user) {
+        showLoggedOut("No has iniciado sesión.");
+        return;
+      }
+
+      const user = session.user;
+      showLoggedIn(user);
+
+      // 1) Confirmar perfil (trigger) sin romper UI si falla
+      confirmProfile(user.id);
+
+      // 2) Enviar welcome (si corresponde) sin romper UI si falla
+      invokeWelcomeOnce(user.id);
+    }
+
     document.getElementById("btnGoogle").addEventListener("click", async () => {
-      // En GitHub Pages, esto debe coincidir con tus Redirect URLs en Supabase
       const redirectTo = "https://jeffcrtra.github.io/Ofrendas/index.html";
-      await supabaseClient.auth.signInWithOAuth({
+      const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo }
       });
-
-      // const { error } = await supabaseClient.auth.signInWithOAuth({
-      //   provider: "google",
-      //   options: { redirectTo }
-      // });
 
       if (error) {
         console.error(error);
@@ -190,36 +203,21 @@
     });
 
     document.getElementById("btnLogout").addEventListener("click", async () => {
+      // reset de guard para que si vuelve a entrar en la misma sesión del browser, intente de nuevo
+      welcomeAttemptedForUserId = null;
+
       const { error } = await supabaseClient.auth.signOut();
       if (error) console.error(error);
       showLoggedOut("Sesión cerrada.");
     });
 
-    // Reaccionar a cambios de sesión (login/logout)
+    // Cambios de sesión (login/logout)
     supabaseClient.auth.onAuthStateChange((_event, _session) => {
       refreshUI();
     });
 
-    // Cargar UI inicial
+    // Inicial
     refreshUI();
-
-    (async () => {
-      console.log("SUPABASE_URL =", SUPABASE_URL);
-      console.log("ANON starts with eyJ =", (SUPABASE_ANON_KEY || "").startsWith("eyJ"));
-      try {
-        const { data, error } = await supabaseClient.auth.getSession();
-        console.log("getSession data =", data);
-        console.log("getSession error =", error);
-      } catch (e) {
-        console.error("getSession threw:", e);
-      }
-    })();
-        
   </script>
 </body>
 </html>
-
-
-
-
-
