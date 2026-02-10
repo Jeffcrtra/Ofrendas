@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>2.41 Ofrendas – Login</title>
+  <title>3.01 Ofrendas – App</title>
+
   <style>
     :root{
       --bg:#f5f5f5;
@@ -13,6 +14,7 @@
       --accent:#16a34a;
       --line:#e5e7eb;
       --radius:16px;
+      --danger:#ef4444;
     }
     body{
       margin:0;
@@ -26,7 +28,7 @@
       padding:18px;
     }
     .card{
-      width:min(520px, 100%);
+      width:min(560px, 100%);
       background:var(--card);
       border:1px solid var(--line);
       border-radius:var(--radius);
@@ -35,27 +37,32 @@
     }
     h1{ font-size:18px; margin:0 0 10px; }
     p{ margin:0 0 14px; color:var(--muted); line-height:1.35; }
+
     .btn{
       width:100%;
       border:0;
       border-radius:999px;
       padding:12px 14px;
-      font-weight:700;
+      font-weight:800;
       cursor:pointer;
     }
     .btn-primary{ background:var(--accent); color:white; }
-    .btn-ghost{ background:#111827; color:white; margin-top:10px; }
+    .btn-ghost{ background:#111827; color:white; }
+    .btn-soft{ background:#eef2ff; color:#111827; border:1px solid var(--line); }
+    .btn-danger{ background:var(--danger); color:white; }
+
     .row{ display:flex; gap:10px; align-items:center; }
     img.avatar{ width:44px; height:44px; border-radius:999px; border:1px solid var(--line); }
     .hidden{ display:none; }
     code{ background:#f3f4f6; padding:2px 6px; border-radius:8px; }
 
+    /* dashboard */
     .grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap:14px;
+      margin:16px 0;
     }
-    
     .tile{
       border:1px solid var(--line);
       border-radius:18px;
@@ -69,31 +76,71 @@
       gap:8px;
       transition: transform .08s ease, box-shadow .08s ease;
     }
-    
-    .tile:hover{
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0,0,0,.08);
-    }
-    
-    .tile:active{
-      transform: scale(.97);
-    }
-    
-    .icon{
-      font-size:32px;
-    }
-    
-    .label{
-      font-size:14px;
-      font-weight:700;
-      text-align:center;
-      line-height:1.2;
-    }
+    .tile:hover{ transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.08); }
+    .tile:active{ transform: scale(.97); }
+    .icon{ font-size:32px; }
+    .label{ font-size:14px; font-weight:800; text-align:center; line-height:1.2; }
 
+    /* views + form */
+    .view{ margin-top:14px; border-top:1px solid var(--line); padding-top:14px; }
+    .viewHeader{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-bottom:10px;
+    }
+    .viewTitle{ font-size:15px; font-weight:900; }
+    .btn-inline{ width:auto; padding:10px 14px; border-radius:999px; font-weight:800; }
+
+    .field{ margin:10px 0; }
+    .field label{ display:block; font-size:12px; font-weight:800; color:#111827; margin-bottom:6px; }
+    .input, .select, .textarea{
+      width:100%;
+      padding:12px 12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
+    }
+    .textarea{ min-height:90px; resize:vertical; }
+    .hint{ font-size:12px; color:var(--muted); margin-top:6px; }
+    .toast{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:#f8fafc;
+      color:#111827;
+      font-size:13px;
+    }
+    .toast.ok{ border-color: #bbf7d0; background:#f0fdf4; }
+    .toast.err{ border-color: #fecaca; background:#fef2f2; color:#7f1d1d; }
+    .list{
+      border:1px solid var(--line);
+      border-radius:14px;
+      overflow:hidden;
+    }
+    .listRow{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 12px;
+      border-bottom:1px solid var(--line);
+      gap:10px;
+    }
+    .listRow:last-child{ border-bottom:none; }
+    .small{ font-size:12px; color:var(--muted); }
+    .miniBtn{
+      width:auto;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#fff;
+      font-weight:800;
+      cursor:pointer;
+    }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
   <div class="card">
     <h1>Registro de Ofrendas</h1>
@@ -110,47 +157,116 @@
       <div class="row" style="margin-bottom:12px;">
         <img id="avatar" class="avatar" alt="avatar" />
         <div>
-          <div id="name" style="font-weight:800;"></div>
+          <div id="name" style="font-weight:900;"></div>
           <div id="email" style="color:var(--muted); font-size:13px;"></div>
         </div>
       </div>
 
-      <p style="font-size:13px;">
-        Tu usuario está listo. ID: <code id="uid"></code>
-      </p>
+      <!-- DASHBOARD 2x2 -->
+      <div id="dashboard" class="grid">
+        <button class="tile" data-open="ofrenda">
+          <div class="icon">💰</div>
+          <div class="label">Ingresar<br>Ofrenda</div>
+        </button>
 
-      <div id="dashboard" style="margin:16px 0;">
-        <div class="grid">
-          <button class="tile" data-action="ofrenda">
-            <div class="icon">💰</div>
-            <div class="label">Ingresar<br>Ofrenda</div>
-          </button>
-      
-          <button class="tile" data-action="egreso">
-            <div class="icon">📉</div>
-            <div class="label">Ingresar<br>Egreso</div>
-          </button>
-      
-          <button class="tile" data-action="reportes">
-            <div class="icon">📊</div>
-            <div class="label">Reportes</div>
-          </button>
-      
-          <button class="tile" data-action="config">
-            <div class="icon">⚙️</div>
-            <div class="label">Configuración</div>
-          </button>
+        <button class="tile" data-open="egreso">
+          <div class="icon">📉</div>
+          <div class="label">Ingresar<br>Egreso</div>
+        </button>
+
+        <button class="tile" data-open="reportes">
+          <div class="icon">📊</div>
+          <div class="label">Reportes</div>
+        </button>
+
+        <button class="tile" data-open="config">
+          <div class="icon">⚙️</div>
+          <div class="label">Configuración</div>
+        </button>
+      </div>
+
+      <!-- VIEW: OFRENDA -->
+      <div id="viewOfrenda" class="view hidden">
+        <div class="viewHeader">
+          <div class="viewTitle">💰 Ingresar Ofrenda</div>
+          <button class="btn-inline btn-soft" id="btnBackFromOfrenda">← Volver</button>
+        </div>
+
+        <div class="field">
+          <label>Concepto</label>
+          <select id="ofConcept" class="select"></select>
+          <div class="hint">Si eliges “Otros”, podrás agregar uno nuevo (se comparte con todos).</div>
+        </div>
+
+        <div id="otherWrap" class="field hidden">
+          <label>Agregar concepto (nuevo)</label>
+          <input id="ofOther" class="input" placeholder="Escribe y presiona Enter…" />
+          <div class="hint">Al presionar Enter, se guardará en Supabase y aparecerá a todos.</div>
+        </div>
+
+        <div class="field">
+          <label>Cantidad a ingresar (₡)</label>
+          <input id="ofAmount" class="input" inputmode="numeric" placeholder="Ej: 2500" />
+          <div class="hint">Solo números. La fecha se guarda automáticamente.</div>
+        </div>
+
+        <div class="field">
+          <label>Testigos (obligatorio)</label>
+          <input id="ofWitnesses" class="input" placeholder="Ej: Juan Pérez, María López" />
+        </div>
+
+        <div class="field">
+          <label>Comentarios</label>
+          <textarea id="ofComments" class="textarea" placeholder="Opcional…"></textarea>
+        </div>
+
+        <button id="btnSendOfrenda" class="btn btn-primary">Enviar</button>
+        <div id="ofToast" class="toast hidden"></div>
+      </div>
+
+      <!-- VIEW: CONFIG -->
+      <div id="viewConfig" class="view hidden">
+        <div class="viewHeader">
+          <div class="viewTitle">⚙️ Configuración</div>
+          <button class="btn-inline btn-soft" id="btnBackFromConfig">← Volver</button>
+        </div>
+
+        <p style="font-size:13px; margin-bottom:10px;">
+          Tu usuario está listo. ID: <code id="uid"></code>
+        </p>
+
+        <div class="field">
+          <label>Conceptos de Ofrenda (compartidos)</label>
+          <div id="conceptList" class="list"></div>
+          <div class="hint">Regla actual: solo puede editar quien creó el concepto. Luego ponemos rol admin.</div>
         </div>
       </div>
-      
-      <button id="btnLogout" class="btn btn-ghost">Cerrar sesión</button>
+
+      <!-- VIEW placeholders -->
+      <div id="viewEgreso" class="view hidden">
+        <div class="viewHeader">
+          <div class="viewTitle">📉 Ingresar Egreso</div>
+          <button class="btn-inline btn-soft" id="btnBackFromEgreso">← Volver</button>
+        </div>
+        <p class="small">Pendiente. Lo armamos después de ofrendas.</p>
+      </div>
+
+      <div id="viewReportes" class="view hidden">
+        <div class="viewHeader">
+          <div class="viewTitle">📊 Reportes</div>
+          <button class="btn-inline btn-soft" id="btnBackFromReportes">← Volver</button>
+        </div>
+        <p class="small">Pendiente. Luego hacemos reportes básicos (por fecha, por concepto, totales).</p>
+      </div>
+
+      <button id="btnLogout" class="btn btn-ghost" style="margin-top:14px;">Cerrar sesión</button>
     </div>
   </div>
 
   <script>
-    // === CONFIG ===
+    // === SUPABASE ===
     const SUPABASE_URL = "https://zcsuldbyhxsapyxfzuht.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpjc3VsZGJ5aHhzYXB5eGZ6dWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NDA5OTMsImV4cCI6MjA4NjMxNjk5M30.PT-y2F1LSl_xmSOlfL8JKhPgGbytmh35i_oVfIb_pts";
+    const SUPABASE_ANON_KEY = "PASTE_TU_ANON_AQUI"; // <-- ponla aquí en tu repo (no pongas service_role nunca)
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -163,7 +279,28 @@
     const elUid = document.getElementById("uid");
     const elAvatar = document.getElementById("avatar");
 
-    let welcomeAttemptedForUserId = null;
+    // views
+    const viewOfrenda = document.getElementById("viewOfrenda");
+    const viewEgreso = document.getElementById("viewEgreso");
+    const viewReportes = document.getElementById("viewReportes");
+    const viewConfig = document.getElementById("viewConfig");
+    const dashboard = document.getElementById("dashboard");
+
+    // ofrenda form
+    const ofConcept = document.getElementById("ofConcept");
+    const otherWrap = document.getElementById("otherWrap");
+    const ofOther = document.getElementById("ofOther");
+    const ofAmount = document.getElementById("ofAmount");
+    const ofWitnesses = document.getElementById("ofWitnesses");
+    const ofComments = document.getElementById("ofComments");
+    const btnSendOfrenda = document.getElementById("btnSendOfrenda");
+    const ofToast = document.getElementById("ofToast");
+
+    // config
+    const conceptList = document.getElementById("conceptList");
+
+    let currentUser = null;
+    let conceptsCache = [];
 
     function showLoggedOut(msg){
       elStatus.textContent = msg || "No has iniciado sesión.";
@@ -172,6 +309,7 @@
     }
 
     function showLoggedIn(user){
+      currentUser = user;
       const meta = user.user_metadata || {};
       elStatus.textContent = "Sesión activa ✅";
       elLoggedOut.classList.add("hidden");
@@ -182,52 +320,234 @@
       elAvatar.src = meta.avatar_url || "https://www.gravatar.com/avatar/?d=mp";
     }
 
-    async function invokeWelcomeOnce(userId) {
-      // Evitar spam: solo 1 intento por userId en esta carga de página
-      if (!userId) return;
-      if (welcomeAttemptedForUserId === userId) return;
-      welcomeAttemptedForUserId = userId;
+    function hideAllViews(){
+      viewOfrenda.classList.add("hidden");
+      viewEgreso.classList.add("hidden");
+      viewReportes.classList.add("hidden");
+      viewConfig.classList.add("hidden");
+    }
 
-      const { data: s } = await supabaseClient.auth.getSession();
-      const accessToken = s?.session?.access_token;
-      if (!accessToken) return;
+    function openView(which){
+      hideAllViews();
+      dashboard.classList.add("hidden");
 
-      try {
-        const res = await fetch(`${SUPABASE_URL}/functions/v1/send-welcome`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-            "apikey": SUPABASE_ANON_KEY,
-          },
-          body: JSON.stringify({}),
-        });
+      if (which === "ofrenda") viewOfrenda.classList.remove("hidden");
+      if (which === "egreso") viewEgreso.classList.remove("hidden");
+      if (which === "reportes") viewReportes.classList.remove("hidden");
+      if (which === "config") viewConfig.classList.remove("hidden");
+    }
 
-        const text = await res.text();
-        let json;
-        try { json = JSON.parse(text); } catch { json = { raw: text }; }
+    function backToDashboard(){
+      hideAllViews();
+      dashboard.classList.remove("hidden");
+      // limpiar mensajes
+      ofToast.classList.add("hidden");
+      ofToast.textContent = "";
+      ofToast.className = "toast hidden";
+    }
 
-        if (!res.ok) {
-          // IMPORTANT: esto NO debe tumbar la sesión / UI.
-          console.warn("send-welcome failed", res.status, json);
-          return;
-        }
-        console.log("send-welcome ok", json);
-      } catch (e) {
-        console.warn("send-welcome request failed:", e);
+    function setToastOk(msg){
+      ofToast.className = "toast ok";
+      ofToast.textContent = msg;
+      ofToast.classList.remove("hidden");
+    }
+    function setToastErr(msg){
+      ofToast.className = "toast err";
+      ofToast.textContent = msg;
+      ofToast.classList.remove("hidden");
+    }
+
+    function onlyDigits(str){
+      return (str || "").replace(/[^\d]/g, "");
+    }
+
+    async function loadConcepts(){
+      const { data, error } = await supabaseClient
+        .from("offering_concepts")
+        .select("id,label,created_by,is_active")
+        .order("label", { ascending: true });
+
+      if (error) {
+        console.warn("No pude cargar offering_concepts:", error);
+        conceptsCache = [];
+        return;
+      }
+      conceptsCache = data || [];
+    }
+
+    function renderConceptSelect(){
+      ofConcept.innerHTML = "";
+      const opts = conceptsCache.filter(x => x.is_active);
+
+      // fallback si está vacío
+      if (!opts.length) {
+        const o = document.createElement("option");
+        o.value = "";
+        o.textContent = "— No hay conceptos —";
+        ofConcept.appendChild(o);
+        return;
+      }
+
+      for (const c of opts) {
+        const o = document.createElement("option");
+        o.value = c.id;
+        o.textContent = c.label;
+        ofConcept.appendChild(o);
+      }
+
+      // si existe "Otros", lo dejamos seleccionado al final cuando el usuario lo elija
+      handleConceptChange();
+    }
+
+    function handleConceptChange(){
+      const selectedId = ofConcept.value;
+      const selected = conceptsCache.find(x => x.id === selectedId);
+      const label = (selected?.label || "").toLowerCase().trim();
+      if (label === "otros") {
+        otherWrap.classList.remove("hidden");
+        ofOther.focus();
+      } else {
+        otherWrap.classList.add("hidden");
+        ofOther.value = "";
       }
     }
 
-    async function confirmProfile(userId){
-      // No rompe nada si falla (RLS/Policy/etc)
-      const { data: prof, error: pe } = await supabaseClient
-        .from("user_profiles")
-        .select("user_id, email, full_name, last_login_at")
-        .eq("user_id", userId)
-        .maybeSingle();
+    async function addConcept(label){
+      const clean = (label || "").trim();
+      if (!clean) return { ok:false, error:"empty" };
 
-      if (pe) console.warn("No pude leer user_profiles (RLS/Policy):", pe);
-      else console.log("Perfil en user_profiles ✅", prof);
+      const { data, error } = await supabaseClient
+        .from("offering_concepts")
+        .insert([{ label: clean, created_by: currentUser.id }])
+        .select("id,label")
+        .single();
+
+      if (error) return { ok:false, error };
+
+      return { ok:true, data };
+    }
+
+    async function renderConceptList(){
+      // En Configuración: lista editable (solo propios por policy)
+      conceptList.innerHTML = "";
+
+      const rows = conceptsCache.filter(x => x.is_active);
+      if (!rows.length) {
+        conceptList.innerHTML = `<div class="listRow"><div>No hay conceptos.</div></div>`;
+        return;
+      }
+
+      for (const c of rows) {
+        const canEdit = (c.created_by === currentUser.id);
+
+        const row = document.createElement("div");
+        row.className = "listRow";
+
+        const left = document.createElement("div");
+        left.innerHTML = `<div style="font-weight:800">${c.label}</div><div class="small">${canEdit ? "Editable por ti" : "Creado por otro usuario"}</div>`;
+
+        const right = document.createElement("div");
+        right.style.display = "flex";
+        right.style.gap = "8px";
+
+        const btnEdit = document.createElement("button");
+        btnEdit.className = "miniBtn";
+        btnEdit.textContent = "Editar";
+        btnEdit.disabled = !canEdit;
+        btnEdit.addEventListener("click", async () => {
+          const newLabel = prompt("Editar concepto:", c.label);
+          if (!newLabel) return;
+          const clean = newLabel.trim();
+          if (!clean) return;
+
+          const { error } = await supabaseClient
+            .from("offering_concepts")
+            .update({ label: clean })
+            .eq("id", c.id);
+
+          if (error) {
+            alert("No se pudo editar (policy).");
+            console.warn(error);
+            return;
+          }
+
+          await loadConcepts();
+          renderConceptSelect();
+          renderConceptList();
+        });
+
+        right.appendChild(btnEdit);
+
+        row.appendChild(left);
+        row.appendChild(right);
+        conceptList.appendChild(row);
+      }
+    }
+
+    async function submitOffering(){
+      // validaciones
+      const amountRaw = onlyDigits(ofAmount.value);
+      const amount = Number(amountRaw);
+      if (!amountRaw || !Number.isFinite(amount) || amount <= 0) {
+        setToastErr("La cantidad debe ser un número mayor a 0.");
+        return;
+      }
+
+      const witnesses = (ofWitnesses.value || "").trim();
+      if (!witnesses) {
+        setToastErr("Testigos es obligatorio.");
+        return;
+      }
+
+      const conceptId = ofConcept.value;
+      const conceptObj = conceptsCache.find(x => x.id === conceptId);
+      const conceptLabel = conceptObj?.label?.trim();
+
+      if (!conceptId || !conceptLabel) {
+        setToastErr("Selecciona un concepto válido.");
+        return;
+      }
+
+      btnSendOfrenda.disabled = true;
+      btnSendOfrenda.textContent = "Enviando…";
+
+      const payload = {
+        amount,
+        concept_id: conceptId,
+        concept_label: conceptLabel,
+        witnesses,
+        comments: (ofComments.value || "").trim() || null,
+        created_by: currentUser.id
+        // created_at lo pone Postgres con default now()
+      };
+
+      const { data, error } = await supabaseClient
+        .from("offerings")
+        .insert([payload])
+        .select("id, created_at")
+        .single();
+
+      btnSendOfrenda.disabled = false;
+      btnSendOfrenda.textContent = "Enviar";
+
+      if (error) {
+        console.warn("Insert offerings error:", error);
+        setToastErr("No se pudo enviar. Revisa permisos (RLS) o conexión.");
+        return;
+      }
+
+      setToastOk(`✅ Enviado y recibido en la base de datos. ID: ${data.id}`);
+
+      // reset parcial
+      ofAmount.value = "";
+      ofWitnesses.value = "";
+      ofComments.value = "";
+    }
+
+    async function setupAfterLogin(){
+      await loadConcepts();
+      renderConceptSelect();
+      await renderConceptList();
     }
 
     async function refreshUI(){
@@ -244,23 +564,17 @@
         return;
       }
 
-      const user = session.user;
-      showLoggedIn(user);
-
-      // 1) Confirmar perfil (trigger) sin romper UI si falla
-      confirmProfile(user.id);
-
-      // 2) Enviar welcome (si corresponde) sin romper UI si falla
-      invokeWelcomeOnce(user.id);
+      showLoggedIn(session.user);
+      await setupAfterLogin();
     }
 
+    // Events
     document.getElementById("btnGoogle").addEventListener("click", async () => {
       const redirectTo = "https://jeffcrtra.github.io/Ofrendas/index.html";
       const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo }
       });
-
       if (error) {
         console.error(error);
         alert("No se pudo iniciar sesión con Google.");
@@ -268,47 +582,77 @@
     });
 
     document.getElementById("btnLogout").addEventListener("click", async () => {
-      // reset de guard para que si vuelve a entrar en la misma sesión del browser, intente de nuevo
-      welcomeAttemptedForUserId = null;
-
       const { error } = await supabaseClient.auth.signOut();
       if (error) console.error(error);
+      currentUser = null;
       showLoggedOut("Sesión cerrada.");
+      backToDashboard();
     });
 
-    // Cambios de sesión (login/logout)
-    supabaseClient.auth.onAuthStateChange((_event, _session) => {
-      refreshUI();
-    });
-
-    // Inicial
-    refreshUI();
-
-
+    // dashboard tiles
     document.querySelectorAll(".tile").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const action = btn.dataset.action;
-    
-        switch(action){
-          case "ofrenda":
-            alert("Aquí va el formulario de OFRENDA");
-            break;
-    
-          case "egreso":
-            alert("Aquí va el formulario de EGRESO");
-            break;
-    
-          case "reportes":
-            alert("Aquí van los REPORTES");
-            break;
-    
-          case "config":
-            alert("Aquí va CONFIGURACIÓN");
-            break;
+      btn.addEventListener("click", async () => {
+        const which = btn.dataset.open;
+        openView(which);
+
+        if (which === "config") {
+          // refrescar lista por si alguien agregó nuevos
+          await loadConcepts();
+          renderConceptSelect();
+          await renderConceptList();
         }
       });
     });
+
+    // back buttons
+    document.getElementById("btnBackFromOfrenda").addEventListener("click", backToDashboard);
+    document.getElementById("btnBackFromConfig").addEventListener("click", backToDashboard);
+    document.getElementById("btnBackFromEgreso").addEventListener("click", backToDashboard);
+    document.getElementById("btnBackFromReportes").addEventListener("click", backToDashboard);
+
+    // concept change
+    ofConcept.addEventListener("change", handleConceptChange);
+
+    // add other concept on Enter
+    ofOther.addEventListener("keydown", async (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+
+      const newLabel = ofOther.value;
+      ofOther.disabled = true;
+
+      const res = await addConcept(newLabel);
+
+      ofOther.disabled = false;
+
+      if (!res.ok) {
+        console.warn("addConcept failed:", res.error);
+        setToastErr("No se pudo agregar el concepto (quizá ya existe o no tienes permiso).");
+        return;
+      }
+
+      await loadConcepts();
+      renderConceptSelect();
+
+      // seleccionar el nuevo concepto
+      ofConcept.value = res.data.id;
+      handleConceptChange(); // esto esconderá el input porque ya no es “Otros”
+      setToastOk(`✅ Concepto agregado: ${res.data.label}`);
+
+      // también refresca config list
+      await renderConceptList();
+    });
+
+    // submit offering
+    btnSendOfrenda.addEventListener("click", submitOffering);
+
+    // auth changes
+    supabaseClient.auth.onAuthStateChange(() => {
+      refreshUI();
+    });
+
+    // init
+    refreshUI();
   </script>
 </body>
 </html>
-
