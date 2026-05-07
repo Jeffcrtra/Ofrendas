@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>3.24 Ofrendas – App</title>
+  <title>11.15 Ofrendas – App</title>
 
   <style>
     :root{
@@ -533,14 +533,14 @@
 
       if (error) {
         console.warn("Insert offerings error:", error);
-      setToastErr(`No se pudo enviar: ${error.message || "error"}`);
+        setToastErr(`No se pudo enviar: ${error.message || "error"}`);
         console.log("Insert error:", error);
         console.log("Insert error JSON:", JSON.stringify(error, null, 2));
         return;
       }
-
-      setToastErr(`No se pudo enviar: ${error.message || "error 400"}`);
-
+      
+      setToastOk("✅ Ofrenda registrada correctamente.");
+      
       // reset parcial
       ofAmount.value = "";
       ofWitnesses.value = "";
