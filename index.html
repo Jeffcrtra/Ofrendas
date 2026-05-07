@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>3.17 Ofrendas – App</title>
+  <title>3.21 Ofrendas – App</title>
 
   <style>
     :root{
@@ -251,22 +251,39 @@
         </div>
       
         <div class="field">
-          <label>Cantidad del egreso (₡)</label>
-          <input id="egAmount" class="input" inputmode="numeric" placeholder="Ej: 5000" />
-          <div class="hint">Solo números. Se guardará como monto negativo.</div>
+          <label>Concepto</label>
+          <input
+            id="egConcept"
+            class="input"
+            placeholder="Ej: Compra de café, transporte, ayuda social..."
+          />
         </div>
       
         <div class="field">
-          <label>Testigos (obligatorio)</label>
-          <input id="egWitnesses" class="input" placeholder="Ej: Juan Pérez, María López" />
+          <label>Cantidad del egreso (₡)</label>
+          <input
+            id="egAmount"
+            class="input"
+            inputmode="numeric"
+            placeholder="Ej: 5000"
+          />
+          <div class="hint">
+            Solo números. Se guardará como monto negativo.
+          </div>
         </div>
       
         <div class="field">
           <label>Comentarios</label>
-          <textarea id="egComments" class="textarea" placeholder="Ej: Compra de materiales, ayuda social, transporte…"></textarea>
+          <textarea
+            id="egComments"
+            class="textarea"
+            placeholder="Opcional…"
+          ></textarea>
         </div>
       
-        <button id="btnSendEgreso" class="btn btn-primary">Enviar</button>
+        <button id="btnSendEgreso" class="btn btn-primary">
+          Enviar
+        </button>
       </div>
 
       <div id="viewReportes" class="view hidden">
