@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>12.50 Ofrendas – App</title>
+  <title>12.51 Ofrendas – App</title>
 
   <style>
     :root{
@@ -380,14 +380,18 @@
       const { data, error } = await supabaseClient
         .from("offering_concepts")
         .select("id,label,created_by,is_active")
+        .eq("is_active", true)
         .order("label", { ascending: true });
-
+    
       if (error) {
-        console.warn("No pude cargar offering_concepts:", error);
+        console.error("ERROR cargando conceptos:", error);
+        elStatus.textContent = "Error cargando conceptos: " + error.message;
         conceptsCache = [];
         return;
       }
-
+    
+      console.log("Conceptos cargados:", data);
+    
       conceptsCache = data || [];
     }
 
