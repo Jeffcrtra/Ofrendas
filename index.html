@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>3.07 Ofrendas – App</title>
+  <title>3.17 Ofrendas – App</title>
 
   <style>
     :root{
@@ -317,6 +317,7 @@
     const egWitnesses = document.getElementById("egWitnesses");
     const egComments = document.getElementById("egComments");
     const btnSendEgreso = document.getElementById("btnSendEgreso");
+    const egConcept = document.getElementById("egConcept");
 
     const conceptList = document.getElementById("conceptList");
 
@@ -596,6 +597,13 @@
     }
 
     async function submitEgreso(){
+      const conceptLabel = (egConcept.value || "").trim();
+    
+      if (!conceptLabel) {
+        setToastErr("El concepto del egreso es obligatorio.");
+        return;
+      }
+    
       const amountRaw = onlyDigits(egAmount.value);
       const amount = Number(amountRaw);
     
@@ -604,26 +612,20 @@
         return;
       }
     
-      const witnesses = (egWitnesses.value || "").trim();
-      if (!witnesses) {
-        setToastErr("Testigos es obligatorio.");
-        return;
-      }
-    
       const comments = (egComments.value || "").trim() || null;
     
-      btnSendEgreso.addEventListener("click", submitEgreso);
+      btnSendEgreso.disabled = true;
       btnSendEgreso.textContent = "Enviando…";
     
       const payload = {
         amount: -Math.abs(amount),
         movement_type: "Egreso",
         attendees: null,
-        concept: "Egreso",
+        concept: conceptLabel,
         notes: comments,
         concept_id: null,
-        concept_label: "Egreso",
-        witnesses,
+        concept_label: conceptLabel,
+        witnesses: null,
         comments,
         created_by: null
       };
@@ -643,8 +645,8 @@
     
       setToastOk("✅ Egreso registrado correctamente.");
     
+      egConcept.value = "";
       egAmount.value = "";
-      egWitnesses.value = "";
       egComments.value = "";
     }
 
@@ -758,6 +760,7 @@
     });
 
     btnSendOfrenda.addEventListener("click", submitOffering);
+    btnSendEgreso.addEventListener("click", submitEgreso);
 
     supabaseClient.auth.onAuthStateChange(() => {
       refreshUI();
