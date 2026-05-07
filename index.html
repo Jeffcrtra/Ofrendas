@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>4.31 Ofrendas – App</title>
+  <title>4.38 Ofrendas – App</title>
 
   <style>
     :root{
@@ -856,8 +856,6 @@
         await setupAfterLogin();
       }
     }
-
-    document.getElementById("btnGoogle").addEventListener("click", redirectToGoogle);
 
     document.getElementById("btnLogout").addEventListener("click", async () => {
       const { error } = await supabaseClient.auth.signOut();
