@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>11.15 Ofrendas – App</title>
+  <title>11.21 Ofrendas – App</title>
 
   <style>
     :root{
@@ -211,6 +211,17 @@
         </div>
 
         <div class="field">
+          <label>Cantidad de asistentes</label>
+          <input
+            id="ofAttendees"
+            class="input"
+            inputmode="numeric"
+            placeholder="Ej: 45"
+          />
+          <div class="hint">Solo números.</div>
+        </div>
+
+        <div class="field">
           <label>Testigos (obligatorio)</label>
           <input id="ofWitnesses" class="input" placeholder="Ej: Juan Pérez, María López" />
         </div>
@@ -330,7 +341,6 @@
     function openView(which){
       hideAllViews();
       dashboard.classList.add("hidden");
-
       if (which === "ofrenda") viewOfrenda.classList.remove("hidden");
       if (which === "egreso") viewEgreso.classList.remove("hidden");
       if (which === "reportes") viewReportes.classList.remove("hidden");
@@ -340,10 +350,10 @@
     function backToDashboard(){
       hideAllViews();
       dashboard.classList.remove("hidden");
-      // limpiar mensajes
       ofToast.classList.add("hidden");
       ofToast.textContent = "";
       ofToast.className = "toast hidden";
+    }
     }
 
     function setToastOk(msg){
