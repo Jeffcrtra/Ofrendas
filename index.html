@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>11.21 Ofrendas – App</title>
+  <title>11.27 Ofrendas – App</title>
 
   <style>
     :root{
@@ -307,6 +307,8 @@
     const btnSendOfrenda = document.getElementById("btnSendOfrenda");
     const ofToast = document.getElementById("ofToast");
 
+    const ofAttendees = document.getElementById("ofAttendees");
+
     // config
     const conceptList = document.getElementById("conceptList");
 
@@ -498,6 +500,8 @@
       // validaciones
       const amountRaw = onlyDigits(ofAmount.value);
       const amount = Number(amountRaw);
+      const attendeesRaw = onlyDigits(ofAttendees.value);
+      const attendees = attendeesRaw ? Number(attendeesRaw) : null;
       if (!amountRaw || !Number.isFinite(amount) || amount <= 0) {
         setToastErr("La cantidad debe ser un número mayor a 0.");
         return;
@@ -523,6 +527,7 @@
 
       const payload = {
         amount,
+        attendees,
         concept: conceptLabel,        // compatibilidad con tabla vieja
         notes: (ofComments.value || "").trim() || null,  // compatibilidad
         concept_id: conceptId || null,
@@ -555,6 +560,7 @@
       ofAmount.value = "";
       ofWitnesses.value = "";
       ofComments.value = "";
+      ofAttendees.value = "";
     }
 
     async function setupAfterLogin(){
