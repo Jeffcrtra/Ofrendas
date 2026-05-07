@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>3.00 Ofrendas – App</title>
+  <title>3.07 Ofrendas – App</title>
 
   <style>
     :root{
@@ -249,7 +249,24 @@
           <div class="viewTitle">📉 Ingresar Egreso</div>
           <button class="btn-inline btn-soft" id="btnBackFromEgreso">← Volver</button>
         </div>
-        <p class="small">Pendiente. Lo armamos después de ofrendas.</p>
+      
+        <div class="field">
+          <label>Cantidad del egreso (₡)</label>
+          <input id="egAmount" class="input" inputmode="numeric" placeholder="Ej: 5000" />
+          <div class="hint">Solo números. Se guardará como monto negativo.</div>
+        </div>
+      
+        <div class="field">
+          <label>Testigos (obligatorio)</label>
+          <input id="egWitnesses" class="input" placeholder="Ej: Juan Pérez, María López" />
+        </div>
+      
+        <div class="field">
+          <label>Comentarios</label>
+          <textarea id="egComments" class="textarea" placeholder="Ej: Compra de materiales, ayuda social, transporte…"></textarea>
+        </div>
+      
+        <button id="btnSendEgreso" class="btn btn-primary">Enviar</button>
       </div>
 
       <div id="viewReportes" class="view hidden">
