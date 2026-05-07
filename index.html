@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>12.15 Ofrendas – App</title>
+  <title>12.18 Ofrendas – App</title>
 
   <style>
     :root{
@@ -433,7 +433,7 @@
 
       const { data, error } = await supabaseClient
         .from("offering_concepts")
-        .insert([{ label: clean, created_by: currentUser.id }])
+        .insert([{ label: clean, created_by: null }])
         .select("id,label")
         .single();
 
@@ -538,7 +538,7 @@
         concept_label: conceptLabel,
         witnesses,
         comments: (ofComments.value || "").trim() || null,
-        created_by: currentUser.id
+        created_by: null
       };
 
       const { error } = await supabaseClient
@@ -589,23 +589,21 @@
     }
 
     async function refreshUI(){
-      const { data, error } = await supabaseClient.auth.getSession();
-
-      if (error) {
-        console.warn("getSession error:", error);
-        showLoggedOut("Error leyendo sesión.");
-        return;
-      }
-
-      const session = data?.session;
-
-      if (!session?.user) {
-        showLoggedOut("Inicia sesión para continuar.");
-        return;
-      }
-
-      showLoggedIn(session.user);
-
+      currentUser = { id: null, email: "" };
+    
+      elStatus.textContent = "";
+      elLoggedOut.classList.add("hidden");
+      elLoggedIn.classList.remove("hidden");
+    
+      elName.textContent = "";
+      elEmail.textContent = "";
+      elAvatar.classList.add("hidden");
+    
+      dashboard.classList.remove("hidden");
+      userHeader.classList.add("hidden");
+      btnLogout.classList.add("hidden");
+      hideAllViews();
+    
       if (!appReady) {
         appReady = true;
         await setupAfterLogin();
