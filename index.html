@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>11.35 Ofrendas – App</title>
+  <title>11.55 Ofrendas – App</title>
 
   <style>
     :root{
@@ -579,11 +579,20 @@
 
       const session = data?.session;
       if (!session?.user) {
-        const redirectTo = "https://jeffcrtra.github.io/Ofrendas/index.html";
-        await supabaseClient.auth.signInWithOAuth({
+        elStatus.textContent = "Redirigiendo a Google…";
+      
+        const { error: loginError } = await supabaseClient.auth.signInWithOAuth({
           provider: "google",
-          options: { redirectTo }
+          options: {
+            redirectTo: window.location.href
+          }
         });
+      
+        if (loginError) {
+          console.error("Login error:", loginError);
+          elStatus.textContent = "No se pudo redirigir a Google.";
+        }
+      
         return;
       }
 
