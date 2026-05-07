@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>11.27 Ofrendas – App</title>
+  <title>11.35 Ofrendas – App</title>
 
   <style>
     :root{
@@ -146,7 +146,7 @@
     <h1>Registro de Ofrendas</h1>
     <p id="status">Cargando sesión…</p>
 
-    <div id="loggedOut">
+    <div id="loggedOut" class="hidden">
       <button id="btnGoogle" class="btn btn-primary">Ingresar con Gmail (Google)</button>
       <p style="margin-top:12px;font-size:13px;">
         Usamos Google para identificarte y registrar tu usuario en la base de datos.
@@ -579,7 +579,11 @@
 
       const session = data?.session;
       if (!session?.user) {
-        showLoggedOut("No has iniciado sesión.");
+        const redirectTo = "https://jeffcrtra.github.io/Ofrendas/index.html";
+        await supabaseClient.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo }
+        });
         return;
       }
 
