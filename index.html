@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>1.01 Ofrendas – App</title>
+  <title>3.01 Ofrendas – App</title>
 
   <style>
     :root{
@@ -296,6 +296,11 @@
     const btnSendOfrenda = document.getElementById("btnSendOfrenda");
     const ofToast = document.getElementById("ofToast");
 
+    const egAmount = document.getElementById("egAmount");
+    const egWitnesses = document.getElementById("egWitnesses");
+    const egComments = document.getElementById("egComments");
+    const btnSendEgreso = document.getElementById("btnSendEgreso");
+
     const conceptList = document.getElementById("conceptList");
 
     let currentUser = null;
@@ -364,6 +369,12 @@
       ofToast.className = "toast ok";
       ofToast.textContent = msg;
       ofToast.classList.remove("hidden");
+    
+      setTimeout(() => {
+        ofToast.classList.add("hidden");
+        ofToast.textContent = "";
+        ofToast.className = "toast hidden";
+      }, 3000);
     }
 
     function setToastErr(msg){
@@ -537,6 +548,7 @@
         amount,
         attendees,
         concept: conceptLabel,
+        movement_type: "Ingreso",
         notes: (ofComments.value || "").trim() || null,
         concept_id: conceptId || null,
         concept_label: conceptLabel,
@@ -564,6 +576,59 @@
       ofAttendees.value = "";
       ofWitnesses.value = "";
       ofComments.value = "";
+    }
+
+    async function submitEgreso(){
+      const amountRaw = onlyDigits(egAmount.value);
+      const amount = Number(amountRaw);
+    
+      if (!amountRaw || !Number.isFinite(amount) || amount <= 0) {
+        setToastErr("La cantidad debe ser un número mayor a 0.");
+        return;
+      }
+    
+      const witnesses = (egWitnesses.value || "").trim();
+      if (!witnesses) {
+        setToastErr("Testigos es obligatorio.");
+        return;
+      }
+    
+      const comments = (egComments.value || "").trim() || null;
+    
+      btnSendEgreso.disabled = true;
+      btnSendEgreso.textContent = "Enviando…";
+    
+      const payload = {
+        amount: -Math.abs(amount),
+        movement_type: "Egreso",
+        attendees: null,
+        concept: "Egreso",
+        notes: comments,
+        concept_id: null,
+        concept_label: "Egreso",
+        witnesses,
+        comments,
+        created_by: null
+      };
+    
+      const { error } = await supabaseClient
+        .from("offerings")
+        .insert([payload]);
+    
+      btnSendEgreso.disabled = false;
+      btnSendEgreso.textContent = "Enviar";
+    
+      if (error) {
+        console.warn("Insert egreso error:", error);
+        setToastErr(`No se pudo enviar: ${error.message || "error"}`);
+        return;
+      }
+    
+      setToastOk("✅ Egreso registrado correctamente.");
+    
+      egAmount.value = "";
+      egWitnesses.value = "";
+      egComments.value = "";
     }
 
     async function setupAfterLogin(){
