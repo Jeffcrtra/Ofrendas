@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>4.11 Ofrendas – App</title>
+  <title>4.31 Ofrendas – App</title>
 
   <style>
     :root{
@@ -291,7 +291,45 @@
           <div class="viewTitle">📊 Reportes</div>
           <button class="btn-inline btn-soft" id="btnBackFromReportes">← Volver</button>
         </div>
-        <p class="small">Pendiente. Luego hacemos reportes básicos (por fecha, por concepto, totales).</p>
+      
+        <div class="field">
+          <label>Filtrar por mes</label>
+          <input id="repMonth" class="input" type="month" />
+        </div>
+      
+        <div class="field">
+          <label>O filtrar por fecha específica</label>
+          <input id="repDate" class="input" type="date" />
+        </div>
+      
+        <button id="btnLoadReportes" class="btn btn-primary">Actualizar reportes</button>
+      
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;">
+          <div class="toast">
+            <strong>Total acumulado</strong><br>
+            <span id="repTotalGlobal">₡0</span>
+          </div>
+      
+          <div class="toast">
+            <strong>Balance filtro</strong><br>
+            <span id="repBalance">₡0</span>
+          </div>
+      
+          <div class="toast ok">
+            <strong>Ingresos</strong><br>
+            <span id="repIngresos">₡0</span>
+          </div>
+      
+          <div class="toast err">
+            <strong>Egresos</strong><br>
+            <span id="repEgresos">₡0</span>
+          </div>
+        </div>
+      
+        <div class="field">
+          <label>Movimientos</label>
+          <div id="repList" class="list"></div>
+        </div>
       </div>
 
       <button id="btnLogout" class="btn btn-ghost" style="margin-top:14px;">Cerrar sesión</button>
@@ -337,6 +375,15 @@
     const egConcept = document.getElementById("egConcept");
 
     const conceptList = document.getElementById("conceptList");
+
+    const repMonth = document.getElementById("repMonth");
+    const repDate = document.getElementById("repDate");
+    const btnLoadReportes = document.getElementById("btnLoadReportes");
+    const repTotalGlobal = document.getElementById("repTotalGlobal");
+    const repBalance = document.getElementById("repBalance");
+    const repIngresos = document.getElementById("repIngresos");
+    const repEgresos = document.getElementById("repEgresos");
+    const repList = document.getElementById("repList");
 
     let currentUser = null;
     let conceptsCache = [];
@@ -668,6 +715,100 @@
       egComments.value = "";
     }
 
+    function formatCRC(value){
+      return new Intl.NumberFormat("es-CR", {
+        style: "currency",
+        currency: "CRC",
+        maximumFractionDigits: 0
+      }).format(value || 0);
+    }
+
+    async function loadReportes(){
+      repList.innerHTML = `<div class="listRow"><div>Cargando...</div></div>`;
+    
+      const { data: allData, error: totalError } = await supabaseClient
+        .from("offerings")
+        .select("amount");
+    
+      if (totalError) {
+        repList.innerHTML = `<div class="listRow"><div>Error: ${totalError.message}</div></div>`;
+        return;
+      }
+    
+      const totalGlobal = (allData || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+      repTotalGlobal.textContent = formatCRC(totalGlobal);
+    
+      let query = supabaseClient
+        .from("offerings")
+        .select("id, amount, concept_label, concept, movement_type, comments, created_at")
+        .order("created_at", { ascending: false });
+    
+      if (repDate.value) {
+        const start = repDate.value + "T00:00:00";
+        const endDate = new Date(repDate.value + "T00:00:00");
+        endDate.setDate(endDate.getDate() + 1);
+        const end = endDate.toISOString();
+    
+        query = query.gte("created_at", start).lt("created_at", end);
+      } else if (repMonth.value) {
+        const start = repMonth.value + "-01T00:00:00";
+        const endDate = new Date(repMonth.value + "-01T00:00:00");
+        endDate.setMonth(endDate.getMonth() + 1);
+        const end = endDate.toISOString();
+    
+        query = query.gte("created_at", start).lt("created_at", end);
+      }
+    
+      const { data, error } = await query;
+    
+      if (error) {
+        repList.innerHTML = `<div class="listRow"><div>Error: ${error.message}</div></div>`;
+        return;
+      }
+    
+      const rows = data || [];
+    
+      const ingresos = rows
+        .filter(x => Number(x.amount) > 0)
+        .reduce((sum, x) => sum + Number(x.amount || 0), 0);
+    
+      const egresos = rows
+        .filter(x => Number(x.amount) < 0)
+        .reduce((sum, x) => sum + Number(x.amount || 0), 0);
+    
+      const balance = ingresos + egresos;
+    
+      repIngresos.textContent = formatCRC(ingresos);
+      repEgresos.textContent = formatCRC(Math.abs(egresos));
+      repBalance.textContent = formatCRC(balance);
+    
+      if (!rows.length) {
+        repList.innerHTML = `<div class="listRow"><div>No hay movimientos para este filtro.</div></div>`;
+        return;
+      }
+    
+      repList.innerHTML = "";
+    
+      rows.forEach(row => {
+        const amount = Number(row.amount || 0);
+        const label = row.concept_label || row.concept || "Sin concepto";
+        const type = row.movement_type || (amount < 0 ? "Egreso" : "Ingreso");
+        const date = new Date(row.created_at).toLocaleDateString("es-CR");
+    
+        const div = document.createElement("div");
+        div.className = "listRow";
+        div.innerHTML = `
+          <div>
+            <div style="font-weight:800;">${label}</div>
+            <div class="small">${type} · ${date}</div>
+          </div>
+          <div style="font-weight:900;">${formatCRC(amount)}</div>
+        `;
+        repList.appendChild(div);
+      });
+    }
+    
+
     async function setupAfterLogin(){
       await loadConcepts();
       renderConceptSelect();
@@ -740,6 +881,10 @@
           renderConceptSelect();
           await renderConceptList();
         }
+
+        if (which === "reportes") {
+          await loadReportes();
+        }
       });
     });
 
@@ -779,6 +924,7 @@
 
     btnSendOfrenda.addEventListener("click", submitOffering);
     btnSendEgreso.addEventListener("click", submitEgreso);
+    btnLoadReportes.addEventListener("click", loadReportes);
 
     supabaseClient.auth.onAuthStateChange(() => {
       refreshUI();
