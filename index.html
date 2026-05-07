@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>11.55 Ofrendas – App</title>
+  <title>12.00 Ofrendas – App</title>
 
   <style>
     :root{
@@ -53,10 +53,9 @@
 
     .row{ display:flex; gap:10px; align-items:center; }
     img.avatar{ width:44px; height:44px; border-radius:999px; border:1px solid var(--line); }
-    .hidden{ display:none; }
+    .hidden{ display:none !important; }
     code{ background:#f3f4f6; padding:2px 6px; border-radius:8px; }
 
-    /* dashboard */
     .grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -81,7 +80,6 @@
     .icon{ font-size:32px; }
     .label{ font-size:14px; font-weight:800; text-align:center; line-height:1.2; }
 
-    /* views + form */
     .view{ margin-top:14px; border-top:1px solid var(--line); padding-top:14px; }
     .viewHeader{
       display:flex; align-items:center; justify-content:space-between; gap:12px;
@@ -94,6 +92,7 @@
     .field label{ display:block; font-size:12px; font-weight:800; color:#111827; margin-bottom:6px; }
     .input, .select, .textarea{
       width:100%;
+      box-sizing:border-box;
       padding:12px 12px;
       border:1px solid var(--line);
       border-radius:14px;
@@ -154,7 +153,7 @@
     </div>
 
     <div id="loggedIn" class="hidden">
-      <div class="row" style="margin-bottom:12px;">
+      <div id="userHeader" class="row" style="margin-bottom:12px;">
         <img id="avatar" class="avatar" alt="avatar" />
         <div>
           <div id="name" style="font-weight:900;"></div>
@@ -162,7 +161,6 @@
         </div>
       </div>
 
-      <!-- DASHBOARD 2x2 -->
       <div id="dashboard" class="grid">
         <button class="tile" data-open="ofrenda">
           <div class="icon">💰</div>
@@ -185,7 +183,6 @@
         </button>
       </div>
 
-      <!-- VIEW: OFRENDA -->
       <div id="viewOfrenda" class="view hidden">
         <div class="viewHeader">
           <div class="viewTitle">💰 Ingresar Ofrenda</div>
@@ -212,12 +209,7 @@
 
         <div class="field">
           <label>Cantidad de asistentes</label>
-          <input
-            id="ofAttendees"
-            class="input"
-            inputmode="numeric"
-            placeholder="Ej: 45"
-          />
+          <input id="ofAttendees" class="input" inputmode="numeric" placeholder="Ej: 45" />
           <div class="hint">Solo números.</div>
         </div>
 
@@ -235,7 +227,6 @@
         <div id="ofToast" class="toast hidden"></div>
       </div>
 
-      <!-- VIEW: CONFIG -->
       <div id="viewConfig" class="view hidden">
         <div class="viewHeader">
           <div class="viewTitle">⚙️ Configuración</div>
@@ -253,7 +244,6 @@
         </div>
       </div>
 
-      <!-- VIEW placeholders -->
       <div id="viewEgreso" class="view hidden">
         <div class="viewHeader">
           <div class="viewTitle">📉 Ingresar Egreso</div>
@@ -275,13 +265,11 @@
   </div>
 
   <script>
-    // === SUPABASE ===
     const SUPABASE_URL = "https://zcsuldbyhxsapyxfzuht.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpjc3VsZGJ5aHhzYXB5eGZ6dWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NDA5OTMsImV4cCI6MjA4NjMxNjk5M30.PT-y2F1LSl_xmSOlfL8JKhPgGbytmh35i_oVfIb_pts"; // <-- ponla aquí en tu repo (no pongas service_role nunca)
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXAiLCJyZWYiOiJ6Y3N1bGRieWh4c2FweXhmenVodCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzcwNzQwOTkzLCJleHAiOjIwODYzMTY5OTN9.PT-y2F1LSl_xmSOlfL8JKhPgGbytmh35i_oVfIb_pts";
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // UI refs
     const elStatus = document.getElementById("status");
     const elLoggedOut = document.getElementById("loggedOut");
     const elLoggedIn = document.getElementById("loggedIn");
@@ -289,31 +277,31 @@
     const elEmail = document.getElementById("email");
     const elUid = document.getElementById("uid");
     const elAvatar = document.getElementById("avatar");
+    const userHeader = document.getElementById("userHeader");
 
-    // views
     const viewOfrenda = document.getElementById("viewOfrenda");
     const viewEgreso = document.getElementById("viewEgreso");
     const viewReportes = document.getElementById("viewReportes");
     const viewConfig = document.getElementById("viewConfig");
     const dashboard = document.getElementById("dashboard");
+    const btnLogout = document.getElementById("btnLogout");
 
-    // ofrenda form
     const ofConcept = document.getElementById("ofConcept");
     const otherWrap = document.getElementById("otherWrap");
     const ofOther = document.getElementById("ofOther");
     const ofAmount = document.getElementById("ofAmount");
+    const ofAttendees = document.getElementById("ofAttendees");
     const ofWitnesses = document.getElementById("ofWitnesses");
     const ofComments = document.getElementById("ofComments");
     const btnSendOfrenda = document.getElementById("btnSendOfrenda");
     const ofToast = document.getElementById("ofToast");
 
-    const ofAttendees = document.getElementById("ofAttendees");
-
-    // config
     const conceptList = document.getElementById("conceptList");
 
     let currentUser = null;
     let conceptsCache = [];
+    let authRedirectStarted = false;
+    let appReady = false;
 
     function showLoggedOut(msg){
       elStatus.textContent = msg || "No has iniciado sesión.";
@@ -324,13 +312,20 @@
     function showLoggedIn(user){
       currentUser = user;
       const meta = user.user_metadata || {};
+
       elStatus.textContent = "Sesión activa ✅";
       elLoggedOut.classList.add("hidden");
       elLoggedIn.classList.remove("hidden");
+
       elName.textContent = meta.full_name || meta.name || "Usuario";
       elEmail.textContent = user.email || "";
       elUid.textContent = user.id;
       elAvatar.src = meta.avatar_url || "https://www.gravatar.com/avatar/?d=mp";
+
+      userHeader.classList.remove("hidden");
+      dashboard.classList.remove("hidden");
+      btnLogout.classList.remove("hidden");
+      hideAllViews();
     }
 
     function hideAllViews(){
@@ -342,7 +337,11 @@
 
     function openView(which){
       hideAllViews();
+
       dashboard.classList.add("hidden");
+      userHeader.classList.add("hidden");
+      btnLogout.classList.add("hidden");
+
       if (which === "ofrenda") viewOfrenda.classList.remove("hidden");
       if (which === "egreso") viewEgreso.classList.remove("hidden");
       if (which === "reportes") viewReportes.classList.remove("hidden");
@@ -351,11 +350,14 @@
 
     function backToDashboard(){
       hideAllViews();
+
       dashboard.classList.remove("hidden");
+      userHeader.classList.remove("hidden");
+      btnLogout.classList.remove("hidden");
+
       ofToast.classList.add("hidden");
       ofToast.textContent = "";
       ofToast.className = "toast hidden";
-    }
     }
 
     function setToastOk(msg){
@@ -363,6 +365,7 @@
       ofToast.textContent = msg;
       ofToast.classList.remove("hidden");
     }
+
     function setToastErr(msg){
       ofToast.className = "toast err";
       ofToast.textContent = msg;
@@ -384,6 +387,7 @@
         conceptsCache = [];
         return;
       }
+
       conceptsCache = data || [];
     }
 
@@ -391,7 +395,6 @@
       ofConcept.innerHTML = "";
       const opts = conceptsCache.filter(x => x.is_active);
 
-      // fallback si está vacío
       if (!opts.length) {
         const o = document.createElement("option");
         o.value = "";
@@ -407,7 +410,6 @@
         ofConcept.appendChild(o);
       }
 
-      // si existe "Otros", lo dejamos seleccionado al final cuando el usuario lo elija
       handleConceptChange();
     }
 
@@ -415,6 +417,7 @@
       const selectedId = ofConcept.value;
       const selected = conceptsCache.find(x => x.id === selectedId);
       const label = (selected?.label || "").toLowerCase().trim();
+
       if (label === "otros") {
         otherWrap.classList.remove("hidden");
         ofOther.focus();
@@ -440,7 +443,6 @@
     }
 
     async function renderConceptList(){
-      // En Configuración: lista editable (solo propios por policy)
       conceptList.innerHTML = "";
 
       const rows = conceptsCache.filter(x => x.is_active);
@@ -466,9 +468,11 @@
         btnEdit.className = "miniBtn";
         btnEdit.textContent = "Editar";
         btnEdit.disabled = !canEdit;
+
         btnEdit.addEventListener("click", async () => {
           const newLabel = prompt("Editar concepto:", c.label);
           if (!newLabel) return;
+
           const clean = newLabel.trim();
           if (!clean) return;
 
@@ -478,18 +482,17 @@
             .eq("id", c.id);
 
           if (error) {
-            alert("No se pudo editar (policy).");
+            alert("No se pudo editar.");
             console.warn(error);
             return;
           }
 
           await loadConcepts();
           renderConceptSelect();
-          renderConceptList();
+          await renderConceptList();
         });
 
         right.appendChild(btnEdit);
-
         row.appendChild(left);
         row.appendChild(right);
         conceptList.appendChild(row);
@@ -497,11 +500,12 @@
     }
 
     async function submitOffering(){
-      // validaciones
       const amountRaw = onlyDigits(ofAmount.value);
       const amount = Number(amountRaw);
+
       const attendeesRaw = onlyDigits(ofAttendees.value);
       const attendees = attendeesRaw ? Number(attendeesRaw) : null;
+
       if (!amountRaw || !Number.isFinite(amount) || amount <= 0) {
         setToastErr("La cantidad debe ser un número mayor a 0.");
         return;
@@ -528,8 +532,8 @@
       const payload = {
         amount,
         attendees,
-        concept: conceptLabel,        // compatibilidad con tabla vieja
-        notes: (ofComments.value || "").trim() || null,  // compatibilidad
+        concept: conceptLabel,
+        notes: (ofComments.value || "").trim() || null,
         concept_id: conceptId || null,
         concept_label: conceptLabel,
         witnesses,
@@ -537,11 +541,9 @@
         created_by: currentUser.id
       };
 
-      const { data, error } = await supabaseClient
+      const { error } = await supabaseClient
         .from("offerings")
-        .insert([payload])
-        .select("id, created_at")
-        .single();
+        .insert([payload]);
 
       btnSendOfrenda.disabled = false;
       btnSendOfrenda.textContent = "Enviar";
@@ -549,18 +551,15 @@
       if (error) {
         console.warn("Insert offerings error:", error);
         setToastErr(`No se pudo enviar: ${error.message || "error"}`);
-        console.log("Insert error:", error);
-        console.log("Insert error JSON:", JSON.stringify(error, null, 2));
         return;
       }
-      
+
       setToastOk("✅ Ofrenda registrada correctamente.");
-      
-      // reset parcial
+
       ofAmount.value = "";
+      ofAttendees.value = "";
       ofWitnesses.value = "";
       ofComments.value = "";
-      ofAttendees.value = "";
     }
 
     async function setupAfterLogin(){
@@ -569,8 +568,29 @@
       await renderConceptList();
     }
 
+    async function redirectToGoogle(){
+      if (authRedirectStarted) return;
+      authRedirectStarted = true;
+
+      elStatus.textContent = "Redirigiendo a Google…";
+
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: "https://jeffcrtra.github.io/Ofrendas/index.html"
+        }
+      });
+
+      if (error) {
+        console.error("Login error:", error);
+        authRedirectStarted = false;
+        showLoggedOut("No se pudo redirigir automáticamente. Intenta con el botón.");
+      }
+    }
+
     async function refreshUI(){
       const { data, error } = await supabaseClient.auth.getSession();
+
       if (error) {
         console.warn("getSession error:", error);
         showLoggedOut("Error leyendo sesión.");
@@ -578,57 +598,41 @@
       }
 
       const session = data?.session;
+
       if (!session?.user) {
-        elStatus.textContent = "Redirigiendo a Google…";
-      
-        const { error: loginError } = await supabaseClient.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: window.location.href
-          }
-        });
-      
-        if (loginError) {
-          console.error("Login error:", loginError);
-          elStatus.textContent = "No se pudo redirigir a Google.";
-        }
-      
+        elLoggedOut.classList.add("hidden");
+        await redirectToGoogle();
         return;
       }
 
       showLoggedIn(session.user);
-      await setupAfterLogin();
+
+      if (!appReady) {
+        appReady = true;
+        await setupAfterLogin();
+      }
     }
 
-    // Events
-    document.getElementById("btnGoogle").addEventListener("click", async () => {
-      const redirectTo = "https://jeffcrtra.github.io/Ofrendas/index.html";
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo }
-      });
-      if (error) {
-        console.error(error);
-        alert("No se pudo iniciar sesión con Google.");
-      }
-    });
+    document.getElementById("btnGoogle").addEventListener("click", redirectToGoogle);
 
     document.getElementById("btnLogout").addEventListener("click", async () => {
       const { error } = await supabaseClient.auth.signOut();
       if (error) console.error(error);
+
       currentUser = null;
+      appReady = false;
+      authRedirectStarted = false;
+
       showLoggedOut("Sesión cerrada.");
       backToDashboard();
     });
 
-    // dashboard tiles
     document.querySelectorAll(".tile").forEach(btn => {
       btn.addEventListener("click", async () => {
         const which = btn.dataset.open;
         openView(which);
 
         if (which === "config") {
-          // refrescar lista por si alguien agregó nuevos
           await loadConcepts();
           renderConceptSelect();
           await renderConceptList();
@@ -636,16 +640,13 @@
       });
     });
 
-    // back buttons
     document.getElementById("btnBackFromOfrenda").addEventListener("click", backToDashboard);
     document.getElementById("btnBackFromConfig").addEventListener("click", backToDashboard);
     document.getElementById("btnBackFromEgreso").addEventListener("click", backToDashboard);
     document.getElementById("btnBackFromReportes").addEventListener("click", backToDashboard);
 
-    // concept change
     ofConcept.addEventListener("change", handleConceptChange);
 
-    // add other concept on Enter
     ofOther.addEventListener("keydown", async (e) => {
       if (e.key !== "Enter") return;
       e.preventDefault();
@@ -659,35 +660,27 @@
 
       if (!res.ok) {
         console.warn("addConcept failed:", res.error);
-        setToastErr("No se pudo agregar el concepto (quizá ya existe o no tienes permiso).");
+        setToastErr("No se pudo agregar el concepto.");
         return;
       }
 
       await loadConcepts();
       renderConceptSelect();
 
-      // seleccionar el nuevo concepto
       ofConcept.value = res.data.id;
-      handleConceptChange(); // esto esconderá el input porque ya no es “Otros”
+      handleConceptChange();
       setToastOk(`✅ Concepto agregado: ${res.data.label}`);
 
-      // también refresca config list
       await renderConceptList();
     });
 
-    // submit offering
     btnSendOfrenda.addEventListener("click", submitOffering);
 
-    // auth changes
     supabaseClient.auth.onAuthStateChange(() => {
       refreshUI();
     });
 
-    // init
     refreshUI();
   </script>
 </body>
 </html>
-
-
-
